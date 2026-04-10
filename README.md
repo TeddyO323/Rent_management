@@ -2,6 +2,14 @@
 
 SmartRent is a frontend-only rent management dashboard prototype for landlords and property managers. It presents a polished multi-page interface for monitoring properties, tenants, payments, maintenance, analytics, notifications, and system settings using realistic mock data.
 
+The system is still under construction, so the current version should be treated as an in-progress product UI rather than a finished application.
+
+## Preview
+
+The screenshot below shows the current look and feel of the system:
+
+![SmartRent dashboard preview](media/Screenshot%202026-04-10%20at%2015.55.36.png)
+
 ## What is in the project so far
 
 The project currently focuses on the user interface and dashboard experience rather than backend functionality.
@@ -83,7 +91,7 @@ You can also use VS Code Live Server or any other static server.
 
 ## Current limitations
 
-This project is still an interface prototype, so a few things are not implemented yet:
+This project is still under construction and currently works as an interface prototype, so a few things are not implemented yet:
 
 - no backend or database
 - no real authentication or user accounts
@@ -101,4 +109,4 @@ This project is still an interface prototype, so a few things are not implemente
 
 ## Summary
 
-So far, SmartRent is a well-designed static dashboard prototype that demonstrates the product direction and user experience for a rent management platform. It already has strong visual structure and page coverage, and the next phase would be turning the mock interface into a real working application.
+So far, SmartRent is a well-designed static dashboard prototype that demonstrates the product direction and user experience for a rent management platform. It already has strong visual structure and page coverage, but it is still under construction and the next phase is turning the mock interface into a real working application.
