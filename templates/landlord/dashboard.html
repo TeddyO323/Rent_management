@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartRent | Landlord Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">Authenticated Area</p>
+        <h1>Landlord Dashboard</h1>
+        <p class="subtle">
+          Signed in as {{ request.user.full_name }}. This landlord side is now protected by Django authentication.
+        </p>
+      </div>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="logout-link" type="submit">Sign Out</button>
+      </form>
+    </header>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="message message-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <section class="status-banner">
+      <strong>Project status:</strong> SmartRent is still under construction. This is the first backend-enabled slice for the landlord experience.
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card">
+        <p>Managed properties</p>
+        <strong>{{ demo_properties }}</strong>
+      </article>
+      <article class="metric-card">
+        <p>Total units</p>
+        <strong>{{ demo_units }}</strong>
+      </article>
+      <article class="metric-card">
+        <p>Occupancy</p>
+        <strong>{{ demo_occupancy }}</strong>
+      </article>
+      <article class="metric-card">
+        <p>Collection pace</p>
+        <strong>{{ demo_collection_rate }}</strong>
+      </article>
+    </section>
+
+    <section class="next-steps">
+      <h2>What this unlocks next</h2>
+      <ul>
+        <li>Role-based separation between landlord and tenant experiences</li>
+        <li>Protected landlord routes for portfolio data and actions</li>
+        <li>Tenant authentication without reworking the user model later</li>
+        <li>PostgreSQL-backed records for properties, leases, and payments</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

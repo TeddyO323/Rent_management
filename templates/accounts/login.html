@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartRent | Landlord Sign In</title>
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-panel auth-panel--brand">
+      <p class="eyebrow">Landlord Portal</p>
+      <h1>SmartRent landlord access</h1>
+      <p class="lede">
+        This side of the platform is for property owners and managers. Tenant-facing access
+        will be added separately as the project grows.
+      </p>
+
+      <div class="callout">
+        <h2>Demo account</h2>
+        <p><strong>Email:</strong> landlord.demo@smartrent.local</p>
+        <p><strong>Password:</strong> DemoPass123!</p>
+      </div>
+    </section>
+
+    <section class="auth-panel auth-panel--form">
+      <div class="form-card">
+        <p class="eyebrow">Authentication</p>
+        <h2>Landlord Sign In</h2>
+        <p class="subtle">Use your landlord credentials to access the dashboard.</p>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="message message-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+          <div class="message message-error">{{ form.non_field_errors|join:", " }}</div>
+        {% endif %}
+
+        <form method="post" class="auth-form">
+          {% csrf_token %}
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="field-error">{{ form.email.errors|join:", " }}</div>
+          {% endif %}
+
+          <label for="{{ form.password.id_for_label }}">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="field-error">{{ form.password.errors|join:", " }}</div>
+          {% endif %}
+
+          <button type="submit">Sign In</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

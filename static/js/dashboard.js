@@ -1,15 +1,17 @@
 const currentPage = document.body.dataset.page || "overview";
 
 const navItems = [
-  { key: "overview", label: "Overview", href: "index.html", icon: "fa-chart-line" },
-  { key: "properties", label: "Properties", href: "properties.html", icon: "fa-building" },
-  { key: "tenants", label: "Tenants", href: "tenants.html", icon: "fa-users" },
-  { key: "payments", label: "Rent Payments", href: "payments.html", icon: "fa-wallet" },
-  { key: "maintenance", label: "Maintenance", href: "maintenance.html", icon: "fa-screwdriver-wrench" },
-  { key: "analytics", label: "Analytics", href: "analytics.html", icon: "fa-chart-pie" },
-  { key: "notifications", label: "Notifications", href: "notifications.html", icon: "fa-bell" },
-  { key: "settings", label: "Settings", href: "settings.html", icon: "fa-gear" }
+  { key: "overview", label: "Overview", href: "/landlord/overview/", icon: "fa-chart-line" },
+  { key: "properties", label: "Properties", href: "/landlord/properties/", icon: "fa-building" },
+  { key: "tenants", label: "Tenants", href: "/landlord/tenants/", icon: "fa-users" },
+  { key: "payments", label: "Rent Payments", href: "/landlord/payments/", icon: "fa-wallet" },
+  { key: "maintenance", label: "Maintenance", href: "/landlord/maintenance/", icon: "fa-screwdriver-wrench" },
+  { key: "analytics", label: "Analytics", href: "/landlord/analytics/", icon: "fa-chart-pie" },
+  { key: "notifications", label: "Notifications", href: "/landlord/notifications/", icon: "fa-bell" },
+  { key: "settings", label: "Settings", href: "/landlord/settings/", icon: "fa-gear" }
 ];
+
+const routeMap = Object.fromEntries(navItems.map((item) => [item.key, item.href]));
 
 const pageConfigs = {
   overview: {
@@ -254,6 +256,63 @@ const pageConfigs = {
   }
 };
 
+const baseProperties = [
+  {
+    name: "Riverpoint Residenc",
+    location: "Westlands, Nairobi",
+    units: 48,
+    revenue: 1020000,
+    occupancy: 96,
+    status: "High Performing",
+    trend: 8.4,
+    occupiedUnits: 46
+  },
+  {
+    name: "Maple Court Lofts",
+    location: "Kilimani, Nairobi",
+    units: 32,
+    revenue: 648000,
+    occupancy: 91,
+    status: "Stable",
+    trend: 3.1,
+    occupiedUnits: 29
+  },
+  {
+    name: "Skyline Suites",
+    location: "Upper Hill, Nairobi",
+    units: 18,
+    revenue: 326000,
+    occupancy: 72,
+    status: "Needs Attention",
+    trend: -6.2,
+    occupiedUnits: 13
+  },
+  {
+    name: "Bluehaven Apartments",
+    location: "Syokimau, Nairobi",
+    units: 64,
+    revenue: 704000,
+    occupancy: 81,
+    status: "Vacancy Risk",
+    trend: -3.8,
+    occupiedUnits: 52
+  },
+  {
+    name: "Cedar Grove Villas",
+    location: "Karen, Nairobi",
+    units: 12,
+    revenue: 420000,
+    occupancy: 100,
+    status: "High Performing",
+    trend: 5.7,
+    occupiedUnits: 12
+  }
+];
+
+const serverPropertiesNode = document.getElementById("server-properties-data");
+const serverProperties = serverPropertiesNode ? JSON.parse(serverPropertiesNode.textContent) : [];
+const properties = [...serverProperties, ...baseProperties];
+let propertyViewMode = "grid";
 
 const tenants = [
   {
@@ -1084,7 +1143,7 @@ function getSidebarHTML(page) {
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <a href="index.html" class="brand">
+      <a href="${routeMap.overview}" class="brand">
         <div class="brand__mark">
           <span></span>
           <span></span>
@@ -1119,7 +1178,7 @@ function getSidebarHTML(page) {
           <h3>Automation boost</h3>
           <p>Rent reminders and vacancy alerts are actively reducing manual follow-up across the portfolio.</p>
         </div>
-        <a href="notifications.html" class="sidebar-card__link">Review alerts</a>
+        <a href="${routeMap.notifications}" class="sidebar-card__link">Review alerts</a>
       </div>
     </div>
   `;
@@ -1147,11 +1206,11 @@ function getHeaderHTML(config) {
       </label>
 
       <div class="button-row">
-        <button class="btn btn--secondary">
+        <button class="btn btn--secondary" ${config.secondaryAction.label === "Add Property" ? 'data-action="add-property"' : ""}>
           <i class="fa-solid ${config.secondaryAction.icon}"></i>
           <span>${config.secondaryAction.label}</span>
         </button>
-        <button class="btn btn--primary">
+        <button class="btn btn--primary" ${config.primaryAction.label === "Add Property" ? 'data-action="add-property"' : ""}>
           <i class="fa-solid ${config.primaryAction.icon}"></i>
           <span>${config.primaryAction.label}</span>
         </button>
@@ -1201,7 +1260,7 @@ function getOverviewTemplate() {
               <h3>Portfolio performance preview</h3>
               <p class="section-copy">Review top-performing buildings and vacancy signals before you dive into the dedicated properties page.</p>
             </div>
-            <a href="properties.html" class="panel-pill">Open properties</a>
+            <a href="${routeMap.properties}" class="panel-pill">Open properties</a>
           </div>
           <div class="properties-grid" id="propertyGrid"></div>
         </article>
@@ -1229,7 +1288,7 @@ function getOverviewTemplate() {
               <span class="section-label">Smart alerts</span>
               <h3>Live reminders and portfolio signals</h3>
             </div>
-            <a href="notifications.html" class="panel-pill">See all</a>
+            <a href="${routeMap.notifications}" class="panel-pill">See all</a>
           </div>
           <div class="alerts-list" id="alertsList"></div>
         </article>
@@ -1247,8 +1306,8 @@ function getOverviewTemplate() {
           </div>
           <p class="insight-copy" id="insightCopy"></p>
           <div class="insight-actions">
-            <a href="tenants.html" class="btn btn--primary btn--full">Launch retention campaign</a>
-            <a href="analytics.html" class="btn btn--ghost btn--full">Review portfolio plan</a>
+            <a href="${routeMap.tenants}" class="btn btn--primary btn--full">Launch retention campaign</a>
+            <a href="${routeMap.analytics}" class="btn btn--ghost btn--full">Review portfolio plan</a>
           </div>
         </article>
       </aside>
@@ -1261,7 +1320,7 @@ function getOverviewTemplate() {
             <span class="section-label">Rent activity</span>
             <h3>Recent payment activity</h3>
           </div>
-          <a href="payments.html" class="panel-pill panel-pill--success">Open payments</a>
+          <a href="${routeMap.payments}" class="panel-pill panel-pill--success">Open payments</a>
         </div>
         <div class="table-wrap">
           <table class="activity-table">
@@ -1285,7 +1344,7 @@ function getOverviewTemplate() {
             <span class="section-label">Maintenance</span>
             <h3>Current tickets</h3>
           </div>
-          <a href="maintenance.html" class="panel-pill panel-pill--warm">Open maintenance</a>
+          <a href="${routeMap.maintenance}" class="panel-pill panel-pill--warm">Open maintenance</a>
         </div>
         <div class="ticket-list" id="ticketList"></div>
       </article>
@@ -1295,12 +1354,6 @@ function getOverviewTemplate() {
 
 function getPropertiesTemplate() {
   return `
-    ${getHeroHTML(pageConfigs.properties.hero)}
-
-    <section class="stats-grid reveal">
-      ${getMetricCardsHTML(metricSets.properties)}
-    </section>
-
     <section class="panel reveal">
       <div class="panel__header panel__header--stack">
         <div>
@@ -1325,10 +1378,24 @@ function getPropertiesTemplate() {
               <option value="Vacancy Risk">Vacancy Risk</option>
             </select>
           </label>
+
+          <label class="select-field select-field--view">
+            <span>View</span>
+            <select id="propertyViewSelect" aria-label="Choose property view">
+              <option value="grid">Grid</option>
+              <option value="list">List</option>
+            </select>
+          </label>
         </div>
       </div>
 
       <div class="properties-grid" id="propertyGrid"></div>
+    </section>
+
+    ${getHeroHTML(pageConfigs.properties.hero)}
+
+    <section class="stats-grid reveal">
+      ${getMetricCardsHTML(metricSets.properties)}
     </section>
 
     <section class="content-grid">
@@ -1600,8 +1667,8 @@ function getAnalyticsTemplate() {
       </div>
       <p class="insight-copy" id="insightCopy"></p>
       <div class="insight-actions insight-actions--inline">
-        <a href="properties.html" class="btn btn--primary">Open property plan</a>
-        <a href="notifications.html" class="btn btn--ghost">Check automations</a>
+        <a href="${routeMap.properties}" class="btn btn--primary">Open property plan</a>
+        <a href="${routeMap.notifications}" class="btn btn--ghost">Check automations</a>
       </div>
     </section>
   `;
@@ -1727,6 +1794,7 @@ function renderProperties(list, options = {}) {
   }
 
   const scopedList = list.slice(0, limit);
+  target.classList.toggle("properties-grid--list", propertyViewMode === "list");
 
   if (!scopedList.length) {
     target.innerHTML = `
@@ -1740,13 +1808,61 @@ function renderProperties(list, options = {}) {
     return;
   }
 
+  if (propertyViewMode === "list") {
+    target.innerHTML = `
+      <div class="property-table-wrap">
+        <table class="property-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Units</th>
+              <th>Occupied</th>
+              <th>Occupancy</th>
+              <th>Revenue</th>
+              <th>Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${scopedList
+        .map((property) => {
+          const trendClass = property.trend < 0 ? "property-card__trend property-card__trend--down" : "property-card__trend";
+          const trendIcon = property.trend < 0 ? "fa-arrow-trend-down" : "fa-arrow-trend-up";
+
+          return `
+                  <tr>
+                    <td>
+                      <div class="table-tenant">
+                        <strong>${property.name}</strong>
+                        <span>${property.location}</span>
+                      </div>
+                    </td>
+                    <td>${property.location}</td>
+                    <td><span class="status-badge status-badge--${statusClassName(property.status)}">${property.status}</span></td>
+                    <td>${property.units}</td>
+                    <td>${property.occupiedUnits}</td>
+                    <td>${property.occupancy}%</td>
+                    <td>${formatCompactCurrency(property.revenue)}</td>
+                    <td><span class="${trendClass}"><i class="fa-solid ${trendIcon}"></i>${Math.abs(property.trend)}%</span></td>
+                  </tr>
+                `;
+        })
+        .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+    return;
+  }
+
   target.innerHTML = scopedList
     .map((property) => {
       const trendClass = property.trend < 0 ? "property-card__trend property-card__trend--down" : "property-card__trend";
       const trendIcon = property.trend < 0 ? "fa-arrow-trend-down" : "fa-arrow-trend-up";
 
       return `
-        <article class="property-card">
+        <article class="property-card${propertyViewMode === "list" ? " property-card--list" : ""}">
           <div class="property-card__top">
             <div class="property-card__title">
               <h4>${property.name}</h4>
@@ -2201,6 +2317,7 @@ function updateInsightCard() {
 function bindPropertyFilters() {
   const propertySearch = document.getElementById("propertySearch");
   const propertyFilter = document.getElementById("propertyFilter");
+  const propertyViewSelect = document.getElementById("propertyViewSelect");
 
   if (!propertySearch || !propertyFilter) {
     return;
@@ -2223,6 +2340,18 @@ function bindPropertyFilters() {
 
   propertySearch.addEventListener("input", applyFilters);
   propertyFilter.addEventListener("change", applyFilters);
+  propertyViewSelect?.addEventListener("change", () => {
+    propertyViewMode = propertyViewSelect.value;
+    applyFilters();
+  });
+}
+
+function initHeaderActions() {
+  document.querySelectorAll("[data-action='add-property']").forEach((button) => {
+    button.addEventListener("click", () => {
+      window.location.href = "/landlord/properties/new/";
+    });
+  });
 }
 
 function animateMetricValues() {
@@ -2598,6 +2727,7 @@ function hydratePage() {
 
 function initDashboard() {
   renderShell();
+  initHeaderActions();
   hydratePage();
 }
 

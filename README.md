@@ -4,6 +4,8 @@ SmartRent is a frontend-only rent management dashboard prototype for landlords a
 
 The system is still under construction, so the current version should be treated as an in-progress product UI rather than a finished application.
 
+The project has now started moving into a real backend implementation using Python, Django, and PostgreSQL-ready configuration, beginning with landlord authentication.
+
 ## Preview
 
 The screenshot below shows the current look and feel of the system:
@@ -20,6 +22,9 @@ The project currently focuses on the user interface and dashboard experience rat
 - Mock property, tenant, payment, maintenance, and alert data
 - Interactive charts rendered with Chart.js from a CDN
 - Sidebar navigation, mobile menu behavior, reveal animations, filters, and metric animations
+- Django project scaffold for backend development
+- Landlord authentication flow with a protected dashboard
+- Demo landlord and tenant accounts for local development
 
 ## Pages
 
@@ -37,6 +42,9 @@ The project currently focuses on the user interface and dashboard experience rat
 - HTML5
 - CSS3
 - Vanilla JavaScript
+- Python
+- Django
+- PostgreSQL-ready database configuration
 - [Chart.js](https://www.chartjs.org/) loaded via CDN
 - [Font Awesome](https://fontawesome.com/) loaded via CDN
 - Google Fonts (`Manrope` and `Sora`)
@@ -45,6 +53,8 @@ The project currently focuses on the user interface and dashboard experience rat
 
 ```text
 Rent_management/
+├── accounts/
+├── config/
 ├── index.html
 ├── properties.html
 ├── tenants.html
@@ -53,7 +63,11 @@ Rent_management/
 ├── analytics.html
 ├── notifications.html
 ├── settings.html
+├── manage.py
+├── requirements.txt
+├── static/
 ├── style.css
+├── templates/
 ├── script.js
 └── README.md
 ```
@@ -71,30 +85,54 @@ This means most of the app behavior currently lives in `script.js`, while `style
 
 ## Running the project
 
-Because this is a static frontend project, you can run it with any simple local server.
+The repo now has two ways to explore it:
 
-### Option 1: Open directly
+### Option 1: Open the static prototype directly
 
 Open [index.html](/Users/aliceakinyiolango/Documents/GitHub/Rent_management/index.html) in a browser.
 
-### Option 2: Use a local server
+### Option 2: Run the Django landlord auth flow
 
-If you have Python installed:
+Install dependencies:
 
 ```bash
-python3 -m http.server 8000
+pip install -r requirements.txt
 ```
 
-Then open `http://localhost:8000`.
+Set your environment variables for PostgreSQL using `.env.example`, or run locally with the default SQLite fallback during early development.
 
-You can also use VS Code Live Server or any other static server.
+Apply migrations:
+
+```bash
+python3 manage.py migrate
+```
+
+Seed the demo accounts:
+
+```bash
+python3 manage.py seed_demo_accounts
+```
+
+Start the server:
+
+```bash
+python3 manage.py runserver
+```
+
+Then open `http://127.0.0.1:8000/auth/login/`.
+
+Demo landlord credentials:
+
+- Email: `landlord.demo@smartrent.local`
+- Password: `DemoPass123!`
 
 ## Current limitations
 
 This project is still under construction and currently works as an interface prototype, so a few things are not implemented yet:
 
 - no backend or database
-- no real authentication or user accounts
+- landlord auth is started, but the full application is not yet database-driven
+- tenant-side authentication and tenant-facing pages are not built yet
 - no form submission or persistent CRUD actions
 - no live API integrations
 - all metrics, tables, alerts, and charts use hard-coded sample data
