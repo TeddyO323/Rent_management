@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartRent | {% block page_title %}{{ page_title }}{% endblock %}</title>
+  <meta name="description" content="{% block page_description %}SmartRent tenant workspace.{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-overrides.css' %}">
+  <script src="{% static 'js/theme-init.js' %}"></script>
+</head>
+<body data-page="{{ page_key }}">
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+  <div class="background-grid"></div>
+
+  {% include "tenant/includes/session_banner.html" %}
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      {% include "tenant/includes/sidebar.html" %}
+    </aside>
+    <div class="app-overlay" id="appOverlay"></div>
+
+    <main class="main-content">
+      {% block topbar %}{% endblock %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="status-banner">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      {% if request.user.password_change_required %}
+        <div class="status-banner status-banner--warning">
+          Please change your password in Settings. This reminder will stay visible until you update it.
+        </div>
+      {% endif %}
+
+      <div class="page-stack">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  {% block json_data %}{% endblock %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

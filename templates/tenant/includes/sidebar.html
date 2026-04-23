@@ -1,0 +1,61 @@
+<div class="sidebar__top">
+  <button class="icon-button sidebar__close mobile-only" id="closeSidebar" aria-label="Close navigation">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+
+  <a href="{% url 'tenant-overview' %}" class="brand">
+    <div class="brand__mark">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div>
+      <h1>SmartRent</h1>
+      <p>Tenant workspace</p>
+    </div>
+  </a>
+</div>
+
+<nav class="sidebar__nav" aria-label="Primary">
+  <a class="nav-link{% if page_key == 'overview' %} active{% endif %}" href="{% url 'tenant-overview' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-house"></i></span>
+    <span>Overview</span>
+  </a>
+  <a class="nav-link{% if page_key == 'receipts' %} active{% endif %}" href="{% url 'tenant-receipts' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+    <span>Receipts & Payments</span>
+  </a>
+  <a class="nav-link{% if page_key == 'profile' %} active{% endif %}" href="{% url 'tenant-profile' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-id-card"></i></span>
+    <span>Profile</span>
+  </a>
+  <a class="nav-link{% if page_key == 'complaints' %} active{% endif %}" href="{% url 'tenant-complaints' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+    <span>Complaints</span>
+  </a>
+  <a class="nav-link{% if page_key == 'notifications' %} active{% endif %}" href="{% url 'tenant-notifications' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-bell"></i></span>
+    <span>Notifications</span>
+  </a>
+  <a class="nav-link{% if page_key == 'analytics' %} active{% endif %}" href="{% url 'tenant-analytics' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-chart-line"></i></span>
+    <span>Analytics</span>
+  </a>
+  <a class="nav-link{% if page_key == 'settings' %} active{% endif %}" href="{% url 'tenant-settings' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-gear"></i></span>
+    <span>Settings</span>
+  </a>
+</nav>
+
+<div class="sidebar__footer">
+  <div class="sidebar-card">
+    <div class="sidebar-card__icon">
+      <i class="fa-solid fa-shield-heart"></i>
+    </div>
+    <div>
+      <h3>Account care</h3>
+      <p>Keep your credentials secure and review your home details from one dedicated tenant space.</p>
+    </div>
+    <a href="{% url 'tenant-settings' %}" class="sidebar-card__link">Open settings</a>
+  </div>
+</div>

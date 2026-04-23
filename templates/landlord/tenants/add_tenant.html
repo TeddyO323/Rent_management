@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartRent | Add Tenant</title>
+  <meta
+    name="description"
+    content="Add a new tenant to your property portfolio in SmartRent."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-overrides.css' %}">
+  <script src="{% static 'js/theme-init.js' %}"></script>
+</head>
+<body data-page="tenants">
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+  <div class="background-grid"></div>
+
+  {% include "landlord/includes/session_banner.html" %}
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">{% include "landlord/includes/sidebar.html" %}</aside>
+    <div class="app-overlay" id="appOverlay"></div>
+
+    <main class="main-content">
+      <section class="topbar topbar--minimal reveal">
+        <div class="topbar__intro">
+          <div class="topbar__heading">
+            <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+              <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+            <div>
+              <span class="eyebrow">Tenant Intake</span>
+              <h2>{{ page_heading }}</h2>
+            </div>
+          </div>
+          <p class="topbar__tagline">
+            {{ page_description }}
+          </p>
+        </div>
+        <div class="topbar__actions topbar__actions--minimal">
+          <a class="btn btn--ghost" href="{{ back_url }}">Back</a>
+        </div>
+      </section>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="status-banner">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="page-stack">
+        <section class="panel reveal tenant-form-panel">
+          <form method="post" class="tenant-form">
+            {% csrf_token %}
+
+            <div class="tenant-form-section">
+              <div class="panel__header panel__header--stack">
+                <div>
+                  <span class="section-label">Property Assignment</span>
+                  <h3>Assign tenant to property</h3>
+                  <p class="section-copy">Select which property and unit this tenant will occupy. Houses are numbered overall per property as House 1, House 2, House 3, and so on.</p>
+                </div>
+              </div>
+
+              <div class="tenant-form__grid">
+                <div class="tenant-form__field tenant-form__field--full">
+                  <label for="{{ form.property.id_for_label }}">Property <span class="required-mark">*</span></label>
+                  {{ form.property }}
+                  {% if form.property.errors %}<div class="field-error">{{ form.property.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.unit_type.id_for_label }}">Unit type <span class="required-mark">*</span></label>
+                  {{ form.unit_type }}
+                  {% if form.unit_type.errors %}<div class="field-error">{{ form.unit_type.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.property_unit.id_for_label }}">Available house <span class="required-mark">*</span></label>
+                  {{ form.property_unit }}
+                  <p class="field-help" id="unitAvailabilityMessage">Choose a property to load available units.</p>
+                  {% if form.property_unit.errors %}<div class="field-error">{{ form.property_unit.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="tenant-form-section">
+              <div class="panel__header panel__header--stack">
+                <div>
+                  <span class="section-label">Personal Information</span>
+                  <h3>Tenant details</h3>
+                  <p class="section-copy">Basic identification and contact information for this tenant.</p>
+                </div>
+              </div>
+
+              <div class="tenant-form__grid">
+                <div class="tenant-form__field">
+                  <label for="{{ form.full_name.id_for_label }}">Full name <span class="required-mark">*</span></label>
+                  {{ form.full_name }}
+                  {% if form.full_name.errors %}<div class="field-error">{{ form.full_name.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.email.id_for_label }}">Email address <span class="required-mark">*</span></label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<div class="field-error">{{ form.email.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.phone.id_for_label }}">Phone number <span class="required-mark">*</span></label>
+                  {{ form.phone }}
+                  {% if form.phone.errors %}<div class="field-error">{{ form.phone.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.id_number.id_for_label }}">ID / Passport number</label>
+                  {{ form.id_number }}
+                  {% if form.id_number.errors %}<div class="field-error">{{ form.id_number.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.occupation.id_for_label }}">Occupation</label>
+                  {{ form.occupation }}
+                  {% if form.occupation.errors %}<div class="field-error">{{ form.occupation.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="tenant-form-section">
+              <div class="panel__header panel__header--stack">
+                <div>
+                  <span class="section-label">Lease Terms</span>
+                  <h3>Rent and lease period</h3>
+                  <p class="section-copy">Choose whether this occupant is renting or purchasing, then let pricing flow from the selected unit type automatically.</p>
+                </div>
+              </div>
+
+              <div class="tenant-form__grid">
+                <div class="tenant-form__field">
+                  <label for="{{ form.lease_type.id_for_label }}">Lease type <span class="required-mark">*</span></label>
+                  {{ form.lease_type }}
+                  <p class="field-help">Rent uses the unit's renting price. Purchase uses the unit's buying price.</p>
+                  {% if form.lease_type.errors %}<div class="field-error">{{ form.lease_type.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.lease_start.id_for_label }}">Lease start date <span class="required-mark">*</span></label>
+                  {{ form.lease_start }}
+                  {% if form.lease_start.errors %}<div class="field-error">{{ form.lease_start.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field" id="leaseEndField">
+                  <label for="{{ form.lease_end.id_for_label }}">Lease end date <span class="required-mark">*</span></label>
+                  {{ form.lease_end }}
+                  <p class="field-help" id="leaseEndHelp">Required for rental leases. Purchase occupants can leave this blank.</p>
+                  {% if form.lease_end.errors %}<div class="field-error">{{ form.lease_end.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label>Pricing from selected unit</label>
+                  <div class="derived-pricing-card" id="derivedPricingCard">
+                    <div class="derived-pricing-card__label" id="derivedPricingLabel">Select property, unit type, house, and lease type</div>
+                    <div class="derived-pricing-card__value" id="derivedPricingValue">KSh 0</div>
+                  </div>
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.security_deposit.id_for_label }}">Security deposit (KSh)</label>
+                  {{ form.security_deposit }}
+                  {% if form.security_deposit.errors %}<div class="field-error">{{ form.security_deposit.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+
+              <div class="tenant-form__grid tenant-form__grid--compact">
+                <div class="tenant-form__field">
+                  <label for="{{ form.status.id_for_label }}">Tenant status</label>
+                  {{ form.status }}
+                  {% if form.status.errors %}<div class="field-error">{{ form.status.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.risk_level.id_for_label }}">Risk level</label>
+                  {{ form.risk_level }}
+                  {% if form.risk_level.errors %}<div class="field-error">{{ form.risk_level.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="tenant-form-section">
+              <div class="panel__header panel__header--stack">
+                <div>
+                  <span class="section-label">Emergency Contact</span>
+                  <h3>Backup contact details</h3>
+                  <p class="section-copy">Someone we can reach in case of emergency situations.</p>
+                </div>
+              </div>
+
+              <div class="tenant-form__grid">
+                <div class="tenant-form__field">
+                  <label for="{{ form.emergency_contact_name.id_for_label }}">Contact name</label>
+                  {{ form.emergency_contact_name }}
+                  {% if form.emergency_contact_name.errors %}<div class="field-error">{{ form.emergency_contact_name.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.emergency_contact_phone.id_for_label }}">Contact phone</label>
+                  {{ form.emergency_contact_phone }}
+                  {% if form.emergency_contact_phone.errors %}<div class="field-error">{{ form.emergency_contact_phone.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="tenant-form__field">
+                  <label for="{{ form.emergency_contact_relationship.id_for_label }}">Relationship</label>
+                  {{ form.emergency_contact_relationship }}
+                  {% if form.emergency_contact_relationship.errors %}<div class="field-error">{{ form.emergency_contact_relationship.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="tenant-form-section">
+              <div class="panel__header panel__header--stack">
+                <div>
+                  <span class="section-label">Payment Setup</span>
+                  <h3>Autopay configuration</h3>
+                  <p class="section-copy">Enable automatic rent payments for this tenant.</p>
+                </div>
+              </div>
+
+              <div class="tenant-form__grid">
+                <div class="tenant-form__field tenant-form__field--toggle">
+                  <div class="toggle-row">
+                    <div class="toggle-info">
+                      <label for="{{ form.autopay_enabled.id_for_label }}" class="toggle-label">Enable autopay</label>
+                      <p class="toggle-description">When enabled, rent will be automatically collected on the due date each month.</p>
+                    </div>
+                    <label class="toggle-switch">
+                      {{ form.autopay_enabled }}
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                  {% if form.autopay_enabled.errors %}<div class="field-error">{{ form.autopay_enabled.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="tenant-form-section">
+              <div class="panel__header panel__header--stack">
+                <div>
+                  <span class="section-label">Additional Notes</span>
+                  <h3>Internal remarks</h3>
+                  <p class="section-copy">Any extra context or reminders about this tenant.</p>
+                </div>
+              </div>
+
+              <div class="tenant-form__grid">
+                <div class="tenant-form__field tenant-form__field--full">
+                  <label for="{{ form.notes.id_for_label }}">Notes</label>
+                  {{ form.notes }}
+                  {% if form.notes.errors %}<div class="field-error">{{ form.notes.errors|join:", " }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            {% if form.non_field_errors %}
+              <div class="field-error">{{ form.non_field_errors|join:", " }}</div>
+            {% endif %}
+
+            <div class="tenant-form__actions">
+              <a class="btn btn--ghost" href="{% url 'landlord-tenants' %}">Cancel</a>
+              <button type="submit" class="btn btn--primary">{{ submit_label }}</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  {{ available_units_payload|json_script:"available-units-data" }}
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

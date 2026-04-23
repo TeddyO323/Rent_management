@@ -1,0 +1,71 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Profile{% endblock %}
+{% block page_description %}SmartRent tenant profile workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Tenant Profile</span>
+          <h2>Review your personal, lease, and contact details.</h2>
+        </div>
+      </div>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="content-grid reveal">
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Personal Details</span>
+          <h3>Your tenant profile</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Full name</span><strong>{{ tenant.full_name }}</strong></div>
+        <div class="detail-list__row"><span>Email</span><strong>{{ tenant.email }}</strong></div>
+        <div class="detail-list__row"><span>Phone</span><strong>{{ tenant.phone }}</strong></div>
+        <div class="detail-list__row"><span>ID / Passport</span><strong>{{ tenant.id_number|default:"Not provided" }}</strong></div>
+        <div class="detail-list__row"><span>Occupation</span><strong>{{ tenant.occupation|default:"Not provided" }}</strong></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Emergency Contact</span>
+          <h3>Backup contact information</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Name</span><strong>{{ tenant.emergency_contact_name|default:"Not provided" }}</strong></div>
+        <div class="detail-list__row"><span>Phone</span><strong>{{ tenant.emergency_contact_phone|default:"Not provided" }}</strong></div>
+        <div class="detail-list__row"><span>Relationship</span><strong>{{ tenant.emergency_contact_relationship|default:"Not provided" }}</strong></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Occupancy</span>
+        <h3>Home and lease information</h3>
+      </div>
+    </div>
+    <div class="detail-list">
+      <div class="detail-list__row"><span>Property</span><strong>{{ tenant.property.name }}</strong></div>
+      <div class="detail-list__row"><span>Location</span><strong>{{ tenant.property.location }}</strong></div>
+      <div class="detail-list__row"><span>House</span><strong>{{ tenant.unit_number }}</strong></div>
+      <div class="detail-list__row"><span>Lease type</span><strong>{{ tenant.lease_type }}</strong></div>
+      <div class="detail-list__row"><span>Lease start</span><strong>{{ tenant.lease_start }}</strong></div>
+      <div class="detail-list__row"><span>Lease end</span><strong>{{ tenant.lease_end|default:"Not applicable" }}</strong></div>
+    </div>
+  </section>
+{% endblock %}

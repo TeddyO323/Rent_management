@@ -1,0 +1,161 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Tenants{% endblock %}
+{% block page_description %}SmartRent tenant relationships and renewals dashboard for landlords.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Tenant Relationships</span>
+          <h2>Keep lease health, renewals, and tenant experience organized in one premium view.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Track renewal timing, payment posture, and autopay adoption before churn or overdue risk compounds.</p>
+    </div>
+
+    <div class="topbar__actions">
+      <a href="{% url 'landlord-add-tenant' %}" class="btn btn--primary">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Add Tenant</span>
+      </a>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Tenant directory</span>
+        <h3>Lease and relationship overview</h3>
+        <p class="section-copy">Search, filter, and switch between a table or card view for your current tenant roster.</p>
+      </div>
+
+      <div class="property-controls">
+        <label class="search-field search-field--compact">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" id="tenantSearch" placeholder="Search tenant, unit, or property" autocomplete="off">
+        </label>
+        <label class="select-field select-field--view">
+          <span>View</span>
+          <select id="tenantViewSelect" aria-label="Choose tenant view">
+            <option value="list">List</option>
+            <option value="grid">Grid</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div id="tenantDirectory"></div>
+    <div id="tenantPagination"></div>
+  </section>
+
+  <section class="hero-panel reveal">
+    <div class="hero-panel__copy">
+      <span class="section-label">Tenant operations</span>
+      <h3>Retention gets easier when payment signals and lease timing are visible at a glance.</h3>
+      <p>This page surfaces upcoming renewals, autopay adoption, and the residents who need the fastest follow-up.</p>
+      <div class="hero-panel__chips">
+        {% for chip in tenant_dashboard_data.hero.chips %}
+          <div class="hero-chip">
+            <strong>{{ chip.value }}</strong>
+            <span>{{ chip.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="hero-panel__spotlight">
+      {% for spotlight in tenant_dashboard_data.hero.spotlights %}
+        <div class="spotlight-card">
+          <span class="spotlight-card__label">{{ spotlight.label }}</span>
+          <strong>{{ spotlight.value }}</strong>
+          <p>{{ spotlight.text }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="stats-grid reveal">
+    {% for metric in tenant_dashboard_data.metric_set %}
+      <article class="metric-card{% if metric.accent %} metric-card--accent{% endif %}">
+        <div class="metric-card__icon{% if metric.icon_tone %} metric-card__icon--{{ metric.icon_tone }}{% endif %}">
+          <i class="fa-solid {{ metric.icon }}"></i>
+        </div>
+        <div class="metric-card__content">
+          <span class="metric-card__label">{{ metric.label }}</span>
+          <strong class="metric-value" data-value="{{ metric.value }}" data-format="{{ metric.format }}">
+            {% if metric.format == "currency" %}KSh 0{% elif metric.format == "percent" %}0%{% else %}0{% endif %}
+          </strong>
+          <p>{{ metric.copy }}</p>
+        </div>
+        <span class="trend trend--{{ metric.trend_style }}">
+          <i class="fa-solid {% if metric.trend_style == 'negative' %}fa-arrow-trend-down{% else %}fa-arrow-trend-up{% endif %}"></i>
+          {{ metric.trend_label }}
+        </span>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Tenant health</span>
+          <h3>Portfolio resident segments</h3>
+        </div>
+      </div>
+      <div class="occupancy-card">
+        <div class="chart-area chart-area--doughnut">
+          <canvas id="tenantStatusChart"></canvas>
+        </div>
+        <div class="occupancy-legend" id="tenantStatusLegend"></div>
+      </div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Renewal queue</span>
+          <h3>Upcoming lease decisions</h3>
+        </div>
+        <span class="panel-pill panel-pill--warm">45-day horizon</span>
+      </div>
+      <div class="note-list">
+        {% for item in tenant_dashboard_data.renewal_queue %}
+          <article class="note-item">
+            <div class="note-item__header">
+              <div>
+                <h4>{{ item.name }}</h4>
+                <p>{{ item.unit }} • {{ item.date }}</p>
+              </div>
+              <span class="status-badge status-badge--{{ item.tone }}">{{ item.date }}</span>
+            </div>
+            <p>{{ item.action }}</p>
+          </article>
+        {% empty %}
+          <article class="note-item">
+            <div class="note-item__header">
+              <div>
+                <h4>No renewals due soon</h4>
+                <p>Your next 45-day renewal queue is currently clear.</p>
+              </div>
+            </div>
+            <p>As lease end dates get closer, renewal work will show up here.</p>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block json_data %}
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  {{ tenants_payload|json_script:"tenant-data" }}
+  {{ tenant_dashboard_data|json_script:"tenant-dashboard-data" }}
+{% endblock %}

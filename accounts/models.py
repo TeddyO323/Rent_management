@@ -42,6 +42,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.LANDLORD)
     full_name = models.CharField(max_length=255, blank=True)
+    password_change_required = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -73,9 +74,9 @@ class Property(models.Model):
     )
     name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
-    units = models.PositiveIntegerField()
-    occupied_units = models.PositiveIntegerField()
-    monthly_revenue = models.DecimalField(max_digits=12, decimal_places=2)
+    units = models.PositiveIntegerField(default=0)
+    occupied_units = models.PositiveIntegerField(default=0)
+    monthly_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     occupancy = models.PositiveIntegerField()
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.STABLE)
     trend = models.FloatField(default=0)
@@ -94,3 +95,275 @@ class Property(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PropertyUnitType(models.Model):
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="unit_types",
+    )
+    unit_type = models.CharField(max_length=120)
+    unit_count = models.PositiveIntegerField()
+    renting_price = models.DecimalField(max_digits=12, decimal_places=2)
+    buying_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.property.name} - {self.unit_type}"
+
+
+class PropertyUnit(models.Model):
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="property_units",
+    )
+    unit_type = models.ForeignKey(
+        PropertyUnitType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="property_units",
+    )
+    unit_number = models.CharField(max_length=50)
+    is_occupied = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["property", "unit_number"],
+                name="unique_property_unit_number",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.property.name} - {self.unit_number}"
+
+
+class Tenant(models.Model):
+    class LeaseType(models.TextChoices):
+        RENT = "Rent", "Rent"
+        PURCHASE = "Purchase", "Purchase"
+
+    class Status(models.TextChoices):
+        GOOD_STANDING = "Good Standing", "Good Standing"
+        RENEWING_SOON = "Renewing Soon", "Renewing Soon"
+        WATCHLIST = "Watchlist", "Watchlist"
+        INACTIVE = "Inactive", "Inactive"
+
+    class RiskLevel(models.TextChoices):
+        LOW = "Low", "Low"
+        MEDIUM = "Medium", "Medium"
+        HIGH = "High", "High"
+
+    landlord = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tenants",
+    )
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenant_profile",
+    )
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="tenants",
+    )
+    property_unit = models.OneToOneField(
+        PropertyUnit,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="current_tenant",
+    )
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    id_number = models.CharField(max_length=50, blank=True)
+    unit_number = models.CharField(max_length=20)
+    lease_start = models.DateField()
+    lease_end = models.DateField(null=True, blank=True)
+    lease_type = models.CharField(
+        max_length=20,
+        choices=LeaseType.choices,
+        default=LeaseType.RENT,
+    )
+    last_rent_charge_at = models.DateTimeField(null=True, blank=True)
+    monthly_rent = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    purchase_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    security_deposit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    emergency_contact_name = models.CharField(max_length=255, blank=True)
+    emergency_contact_phone = models.CharField(max_length=20, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True)
+    occupation = models.CharField(max_length=100, blank=True)
+    autopay_enabled = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.GOOD_STANDING,
+    )
+    risk_level = models.CharField(
+        max_length=10,
+        choices=RiskLevel.choices,
+        default=RiskLevel.LOW,
+    )
+    current_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "full_name"]
+
+    def __str__(self):
+        return f"{self.full_name} - {self.property.name} ({self.unit_number})"
+
+
+class LeaseExtensionRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "Pending", "Pending"
+        UNDER_REVIEW = "Under Review", "Under Review"
+        APPROVED = "Approved", "Approved"
+        DECLINED = "Declined", "Declined"
+
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="lease_extension_requests",
+    )
+    requested_end_date = models.DateField()
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.tenant.full_name} - {self.requested_end_date}"
+
+
+class Complaint(models.Model):
+    class Category(models.TextChoices):
+        ELECTRICITY = "Electricity", "Electricity"
+        PLUMBING = "Plumbing", "Plumbing"
+        WINDOWS = "Windows", "Windows"
+        SECURITY = "Security", "Security"
+        CLEANING = "Cleaning", "Cleaning"
+        OTHER = "Other", "Other"
+
+    class Status(models.TextChoices):
+        PENDING = "Pending", "Pending"
+        IN_PROGRESS = "In Progress", "In Progress"
+        RESOLVED = "Resolved", "Resolved"
+
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="complaints",
+    )
+    title = models.CharField(max_length=255)
+    category = models.CharField(max_length=30, choices=Category.choices)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.tenant.full_name} - {self.title}"
+
+
+class Bill(models.Model):
+    class Category(models.TextChoices):
+        RENT = "Rent", "Rent"
+        SERVICE_CHARGE = "Service Charge", "Service Charge"
+        WATER = "Water Bill", "Water Bill"
+        REPAIRS = "Repair Bill", "Repair Bill"
+        OTHER = "Other", "Other"
+
+    class Status(models.TextChoices):
+        UNPAID = "Unpaid", "Unpaid"
+        PARTIALLY_PAID = "Partially Paid", "Partially Paid"
+        PAID = "Paid", "Paid"
+
+    landlord = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="bills",
+    )
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="bills",
+    )
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bills",
+    )
+    title = models.CharField(max_length=255)
+    category = models.CharField(max_length=30, choices=Category.choices)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    remaining_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    due_date = models.DateField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.UNPAID)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if self.pk is None and self.remaining_amount in (None, 0):
+            self.remaining_amount = self.amount
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.title} - {self.amount}"
+
+
+class Payment(models.Model):
+    class Method(models.TextChoices):
+        MPESA = "M-Pesa", "M-Pesa"
+        BANK = "Bank Transfer", "Bank Transfer"
+        CASH = "Cash", "Cash"
+        CARD = "Card", "Card"
+
+    landlord = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+    method = models.CharField(max_length=20, choices=Method.choices)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    paid_on = models.DateField()
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-paid_on", "-created_at"]
+
+    def __str__(self):
+        return f"{self.tenant.full_name} - {self.amount} on {self.paid_on}"

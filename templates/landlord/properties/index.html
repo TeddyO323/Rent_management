@@ -1,0 +1,133 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Properties{% endblock %}
+{% block page_description %}SmartRent property and unit management dashboard.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Portfolio Control</span>
+          <h2>Monitor buildings, unit mix, and vacancy risk without losing operational detail.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Review property health, revenue performance, and leasing exposure across the full portfolio from one dedicated workspace.</p>
+    </div>
+
+    <div class="topbar__actions">
+      <a href="{% url 'landlord-add-property' %}" class="btn btn--primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Property</span>
+      </a>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="panel reveal" id="propertyManagementPanel">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Property management</span>
+        <h3>Buildings, units, and revenue health</h3>
+        <p class="section-copy">Search and filter the full portfolio to find high-performing assets, stable buildings, and sites needing immediate action.</p>
+      </div>
+
+      <div class="property-controls">
+        <label class="search-field search-field--compact">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" id="propertySearch" placeholder="Search property or location" autocomplete="off">
+        </label>
+        <label class="select-field">
+          <span>Status</span>
+          <select id="propertyFilter" aria-label="Filter properties by status">
+            <option value="all">All status levels</option>
+            <option value="High Performing">High Performing</option>
+            <option value="Stable">Stable</option>
+            <option value="Needs Attention">Needs Attention</option>
+            <option value="Vacancy Risk">Vacancy Risk</option>
+          </select>
+        </label>
+        <label class="select-field select-field--view">
+          <span>View</span>
+          <select id="propertyViewSelect" aria-label="Choose property view">
+            <option value="list">List</option>
+            <option value="grid">Grid</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="properties-grid" id="propertyGrid"></div>
+    <div id="propertyPagination"></div>
+  </section>
+
+  <section class="hero-panel reveal">
+    <div class="hero-panel__copy">
+      <span class="section-label">Property intelligence</span>
+      <h3>See which buildings are outperforming and which ones need leasing intervention.</h3>
+      <p>This workspace is built for portfolio-level visibility, from occupancy pressure to revenue contribution and unit composition.</p>
+      <div class="hero-panel__chips">
+        {% for chip in property_dashboard_data.hero.chips %}
+          <div class="hero-chip"><strong>{{ chip.value }}</strong><span>{{ chip.label }}</span></div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="hero-panel__spotlight">
+      {% for spotlight in property_dashboard_data.hero.spotlights %}
+        <div class="spotlight-card"><span class="spotlight-card__label">{{ spotlight.label }}</span><strong>{{ spotlight.value }}</strong><p>{{ spotlight.text }}</p></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="stats-grid reveal">
+    {% for metric in property_dashboard_data.metricSet %}
+      <article class="metric-card{% if metric.accent %} metric-card--accent{% endif %}">
+        <div class="metric-card__icon{% if metric.iconTone %} metric-card__icon--{{ metric.iconTone }}{% endif %}"><i class="fa-solid {{ metric.icon }}"></i></div>
+        <div class="metric-card__content">
+          <span class="metric-card__label">{{ metric.label }}</span>
+          <strong class="metric-value" data-value="{{ metric.value }}" data-format="{{ metric.format }}">
+            {% if metric.format == "currency" %}KSh 0{% elif metric.format == "percent" %}0%{% else %}0{% endif %}
+          </strong>
+          <p>{{ metric.copy }}</p>
+        </div>
+        <span class="trend trend--{{ metric.trendStyle }}"><i class="fa-solid {% if '-' in metric.trendLabel %}fa-arrow-trend-down{% else %}fa-arrow-trend-up{% endif %}"></i>{{ metric.trendLabel }}</span>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Unit mix</span>
+          <h3>Unit composition and pricing health</h3>
+        </div>
+      </div>
+      <div class="unit-list" id="unitList"></div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Occupancy distribution</span>
+          <h3>Occupied, vacant, and reserved units</h3>
+        </div>
+      </div>
+      <div class="occupancy-card">
+        <div class="chart-area chart-area--doughnut"><canvas id="occupancyChart"></canvas></div>
+        <div class="occupancy-legend" id="occupancyLegend"></div>
+      </div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block json_data %}
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  {{ properties_payload|json_script:"server-properties-data" }}
+  {{ property_dashboard_data|json_script:"property-dashboard-data" }}
+{% endblock %}

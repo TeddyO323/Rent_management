@@ -5,9 +5,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartRent | Landlord Dashboard</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
   <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-overrides.css' %}">
+  <script src="{% static 'js/theme-init.js' %}"></script>
 </head>
 <body>
+  <button type="button" class="icon-button auth-theme-toggle theme-toggle" aria-label="Switch theme" title="Dark mode">
+    <i class="fa-solid fa-moon" aria-hidden="true"></i>
+  </button>
   <main class="dashboard-shell">
     <header class="dashboard-header">
       <div>
@@ -62,5 +71,9 @@
       </ul>
     </section>
   </main>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script>
+    window.SmartRentTheme.bindToggles();
+  </script>
 </body>
 </html>

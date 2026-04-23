@@ -1,0 +1,72 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Complaints{% endblock %}
+{% block page_description %}SmartRent tenant complaints workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Complaints & Repairs</span>
+          <h2>Log issues in your house and follow their progress.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Use this page for issues like broken windows, electricity faults, plumbing problems, and similar maintenance concerns.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="content-grid">
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">New Complaint</span>
+          <h3>Tell us what needs attention</h3>
+        </div>
+      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ complaint_form.title.id_for_label }}">Title</label>
+            {{ complaint_form.title }}
+            {% if complaint_form.title.errors %}<div class="field-error">{{ complaint_form.title.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ complaint_form.category.id_for_label }}">Category</label>
+            {{ complaint_form.category }}
+            {% if complaint_form.category.errors %}<div class="field-error">{{ complaint_form.category.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ complaint_form.description.id_for_label }}">Description</label>
+            {{ complaint_form.description }}
+            {% if complaint_form.description.errors %}<div class="field-error">{{ complaint_form.description.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Log Complaint</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Complaint History</span>
+          <h3>Your reported issues</h3>
+        </div>
+      </div>
+      <div id="tenantComplaintsTable"></div>
+      <div id="tenantComplaintsPagination"></div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ complaints_payload|json_script:"tenant-complaints-data" }}
+{% endblock %}

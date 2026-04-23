@@ -1,0 +1,61 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Tenant Settings{% endblock %}
+{% block page_description %}SmartRent tenant settings workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Tenant Settings</span>
+          <h2>Manage your account security.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Change your password here. If you are still using the default password from landlord setup, the reminder banner will remain visible until you update it.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="panel reveal tenant-form-panel">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Password Change</span>
+        <h3>Update your sign-in password</h3>
+        <p class="section-copy">Use a password that only you know. Your email stays the same.</p>
+      </div>
+    </div>
+
+    {% if password_form.non_field_errors %}
+      <div class="field-error">{{ password_form.non_field_errors|join:", " }}</div>
+    {% endif %}
+
+    <form method="post" class="tenant-form">
+      {% csrf_token %}
+      <div class="tenant-form__grid">
+        <div class="tenant-form__field tenant-form__field--full">
+          <label for="{{ password_form.old_password.id_for_label }}">Current password</label>
+          {{ password_form.old_password }}
+          {% if password_form.old_password.errors %}<div class="field-error">{{ password_form.old_password.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="tenant-form__field">
+          <label for="{{ password_form.new_password1.id_for_label }}">New password</label>
+          {{ password_form.new_password1 }}
+          {% if password_form.new_password1.errors %}<div class="field-error">{{ password_form.new_password1.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="tenant-form__field">
+          <label for="{{ password_form.new_password2.id_for_label }}">Confirm new password</label>
+          {{ password_form.new_password2 }}
+          {% if password_form.new_password2.errors %}<div class="field-error">{{ password_form.new_password2.errors|join:", " }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="tenant-form__actions">
+        <button type="submit" class="btn btn--primary">Update Password</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

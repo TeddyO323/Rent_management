@@ -1,0 +1,33 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Settings{% endblock %}
+{% block page_description %}SmartRent settings, integrations, and automation dashboard.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation"><i class="fa-solid fa-bars-staggered"></i></button>
+        <div><span class="eyebrow">System Settings</span><h2>Control automations, integrations, access, and reporting rules from one polished admin view.</h2></div>
+      </div>
+      <p class="topbar__tagline">Tune the operating system behind SmartRent without sacrificing clarity or design quality.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-plug"></i></div><div class="metric-card__content"><span class="metric-card__label">Integrations</span><strong class="metric-value" data-value="5" data-format="number">0</strong><p>Connected tools feeding payments, reporting, reminders, and vendor coordination.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+1</span></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-gears"></i></div><div class="metric-card__content"><span class="metric-card__label">Active Automations</span><strong class="metric-value" data-value="6" data-format="number">0</strong><p>Core reminder, reporting, and escalation workflows are active and healthy.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>Stable</span></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-user-shield"></i></div><div class="metric-card__content"><span class="metric-card__label">Permission Roles</span><strong class="metric-value" data-value="4" data-format="number">0</strong><p>Access is organized by clear role-based permissions across portfolio teams.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>Controlled</span></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-file-lines"></i></div><div class="metric-card__content"><span class="metric-card__label">Scheduled Reports</span><strong class="metric-value" data-value="3" data-format="number">0</strong><p>Owner digests and analytics exports are configured for consistent delivery.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>On time</span></article>
+  </section>
+
+  <section class="settings-grid reveal" id="settingsGrid"></section>
+
+  <section class="content-grid">
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Integrations</span><h3>Connected systems and health</h3></div></div><div class="integration-list" id="integrationList"></div></article>
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Access control</span><h3>Role-based permissions</h3></div></div><div class="access-list" id="accessList"></div></article>
+  </section>
+{% endblock %}

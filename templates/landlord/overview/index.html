@@ -1,0 +1,229 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Overview{% endblock %}
+{% block page_description %}SmartRent overview dashboard for landlords and property managers.{% endblock %}
+
+{% block topbar %}
+<header class="topbar reveal">
+  <div class="topbar__intro">
+    <div class="topbar__heading">
+      <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+        <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+      <div>
+        <span class="eyebrow">Smart Rent Platform</span>
+        <h2>Operate your entire portfolio from one polished workspace.</h2>
+      </div>
+    </div>
+    <p class="topbar__tagline">Track cash flow, occupancy, maintenance response times, and smart alerts across every
+      building in real time.</p>
+  </div>
+  <div class="topbar__actions">
+    <a class="btn btn--primary" href="{% url 'landlord-add-property' %}">
+      <i class="fa-solid fa-plus"></i>
+      <span>Add Property</span>
+    </a>
+  </div>
+
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="hero-panel reveal">
+  <div class="hero-panel__copy">
+    <span class="section-label">Premium dashboard snapshot</span>
+    <h3>Portfolio health is trending up with stronger collections and fewer unresolved issues.</h3>
+    <p>SmartRent surfaces the next best action for landlords before revenue risk grows. Every number on this page is
+      wired to a polished portfolio view that feels production-ready.</p>
+    <div class="hero-panel__chips">
+      <div class="hero-chip"><strong>174 Units</strong><span>Across 5 active properties</span></div>
+      <div class="hero-chip"><strong>93.6%</strong><span>On-time payment adherence</span></div>
+      <div class="hero-chip"><strong>4.1 hrs</strong><span>Avg. first-response time</span></div>
+    </div>
+  </div>
+  <div class="hero-panel__spotlight">
+    <div class="spotlight-card">
+      <span class="spotlight-card__label">Net collection pace</span>
+      <strong>91.1%</strong>
+      <p>Expected rent is being recovered at a healthy pace this month thanks to autopay and early follow-ups.</p>
+    </div>
+    <div class="spotlight-card">
+      <span class="spotlight-card__label">Vacancy watch</span>
+      <strong>2 buildings</strong>
+      <p>Skyline Suites and Bluehaven Apartments need targeted leasing attention this week.</p>
+    </div>
+  </div>
+</section>
+
+<section class="stats-grid reveal">
+  <article class="metric-card metric-card--accent">
+    <div class="metric-card__icon"><i class="fa-solid fa-coins"></i></div>
+    <div class="metric-card__content">
+      <span class="metric-card__label">Monthly Collection</span>
+      <strong class="metric-value" data-value="2840000" data-format="currency">KSh 0</strong>
+      <p>Collected from 178 completed rent transactions this cycle.</p>
+    </div>
+    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+12%</span>
+  </article>
+  <article class="metric-card">
+    <div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-door-open"></i></div>
+    <div class="metric-card__content">
+      <span class="metric-card__label">Occupancy Rate</span>
+      <strong class="metric-value" data-value="87.4" data-format="percent">0%</strong>
+      <p>Strong occupancy across stabilized properties with room to optimize two sites.</p>
+    </div>
+    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+3.4%</span>
+  </article>
+  <article class="metric-card">
+    <div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+    <div class="metric-card__content">
+      <span class="metric-card__label">Open Maintenance Tickets</span>
+      <strong class="metric-value" data-value="14" data-format="number">0</strong>
+      <p>Most active requests are plumbing and electrical, with response time improving.</p>
+    </div>
+    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-9%</span>
+  </article>
+  <article class="metric-card">
+    <div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="metric-card__content">
+      <span class="metric-card__label">Late Payments</span>
+      <strong class="metric-value" data-value="6" data-format="number">0</strong>
+      <p>Follow-up reminders were sent automatically to minimize overdue exposure.</p>
+    </div>
+    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-4%</span>
+  </article>
+</section>
+
+<section class="analytics-layout">
+  <div class="analytics-layout__main">
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Collections analytics</span>
+          <h3>Expected rent vs collected rent</h3>
+        </div>
+        <span class="panel-pill">Last 6 months</span>
+      </div>
+      <div class="chart-area chart-area--large">
+        <canvas id="rentChart"></canvas>
+      </div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Properties and units</span>
+          <h3>Portfolio performance preview</h3>
+          <p class="section-copy">Review top-performing buildings and vacancy signals before you dive into the dedicated
+            properties page.</p>
+        </div>
+        <a href="{% url 'landlord-properties' %}" class="panel-pill">Open properties</a>
+      </div>
+      <div class="properties-grid">
+        <article class="property-card">
+          <div class="property-card__top">
+            <div class="property-card__title">
+              <h4>Riverpoint Residences</h4>
+              <p><i class="fa-solid fa-location-dot"></i> Westlands, Nairobi</p>
+            </div><span class="status-badge status-badge--high-performing">High Performing</span>
+          </div>
+          <div class="property-card__meta">
+            <div class="meta-stack"><span>Units</span><strong>48</strong></div>
+            <div class="meta-stack"><span>Occupied</span><strong>46</strong></div>
+          </div>
+          <div class="progress-group">
+            <div class="progress-group__label"><span>Occupancy progress</span><strong>96%</strong></div>
+            <div class="progress-bar"><span style="width:96%"></span></div>
+          </div>
+        </article>
+        <article class="property-card">
+          <div class="property-card__top">
+            <div class="property-card__title">
+              <h4>Maple Court Lofts</h4>
+              <p><i class="fa-solid fa-location-dot"></i> Kilimani, Nairobi</p>
+            </div><span class="status-badge status-badge--stable">Stable</span>
+          </div>
+          <div class="property-card__meta">
+            <div class="meta-stack"><span>Units</span><strong>32</strong></div>
+            <div class="meta-stack"><span>Occupied</span><strong>29</strong></div>
+          </div>
+          <div class="progress-group">
+            <div class="progress-group__label"><span>Occupancy progress</span><strong>91%</strong></div>
+            <div class="progress-bar"><span style="width:91%"></span></div>
+          </div>
+        </article>
+        <article class="property-card">
+          <div class="property-card__top">
+            <div class="property-card__title">
+              <h4>Skyline Suites</h4>
+              <p><i class="fa-solid fa-location-dot"></i> Upper Hill, Nairobi</p>
+            </div><span class="status-badge status-badge--needs-attention">Needs Attention</span>
+          </div>
+          <div class="property-card__meta">
+            <div class="meta-stack"><span>Units</span><strong>18</strong></div>
+            <div class="meta-stack"><span>Occupied</span><strong>13</strong></div>
+          </div>
+          <div class="progress-group">
+            <div class="progress-group__label"><span>Occupancy progress</span><strong>72%</strong></div>
+            <div class="progress-bar"><span style="width:72%"></span></div>
+          </div>
+        </article>
+      </div>
+    </article>
+  </div>
+
+  <aside class="analytics-layout__side">
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Occupancy mix</span>
+          <h3>Portfolio unit status</h3>
+        </div>
+      </div>
+      <div class="occupancy-card">
+        <div class="chart-area chart-area--doughnut">
+          <canvas id="occupancyChart"></canvas>
+        </div>
+        <div class="occupancy-legend" id="occupancyLegend"></div>
+      </div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Smart alerts</span>
+          <h3>Live reminders and portfolio signals</h3>
+        </div>
+        <a href="{% url 'landlord-notifications' %}" class="panel-pill">See all</a>
+      </div>
+      <div class="alerts-list">
+        <article class="alert-item">
+          <div class="alert-item__icon alert-item__icon--warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div>
+            <h4>Skyline Suites occupancy slipped</h4>
+            <p>Vacancy is climbing and may affect next month’s cash flow without faster leasing support.</p><span
+              class="alert-item__time">12 min ago</span>
+          </div>
+        </article>
+        <article class="alert-item">
+          <div class="alert-item__icon alert-item__icon--success"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <h4>Riverpoint collections closed strong</h4>
+            <p>Autopay and early reminder timing helped Riverpoint exceed expected collection pace.</p><span
+              class="alert-item__time">1 hour ago</span>
+          </div>
+        </article>
+        <article class="alert-item">
+          <div class="alert-item__icon alert-item__icon--info"><i class="fa-solid fa-bell"></i></div>
+          <div>
+            <h4>Renewals opening this week</h4>
+            <p>Several strong-paying tenants are entering early renewal season and should be contacted first.</p><span
+              class="alert-item__time">Today</span>
+          </div>
+        </article>
+      </div>
+    </article>
+  </aside>
+</section>
+{% endblock %}

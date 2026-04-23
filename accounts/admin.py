@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import Property, User
+from .models import Property, PropertyUnitType, User
 
 
 @admin.register(User)
@@ -46,8 +46,14 @@ class UserAdmin(DjangoUserAdmin):
     )
 
 
+class PropertyUnitTypeInline(admin.TabularInline):
+    model = PropertyUnitType
+    extra = 1
+
+
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
     list_display = ("name", "landlord", "location", "units", "occupied_units", "status", "monthly_revenue")
     list_filter = ("status",)
     search_fields = ("name", "location", "landlord__email", "landlord__full_name")
+    inlines = [PropertyUnitTypeInline]

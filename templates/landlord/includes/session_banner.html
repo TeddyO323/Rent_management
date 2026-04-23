@@ -1,0 +1,15 @@
+<div class="session-banner">
+  <div class="session-banner__text">
+    <span class="session-banner__label">Landlord Session</span>
+    <strong>{{ request.user.full_name }}</strong>
+  </div>
+  <div class="session-banner__end">
+    <button type="button" class="icon-button theme-toggle" aria-label="Switch theme" title="Dark mode">
+      <i class="fa-solid fa-moon" aria-hidden="true"></i>
+    </button>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="session-banner__button">Sign Out</button>
+    </form>
+  </div>
+</div>

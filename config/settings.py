@@ -89,7 +89,11 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "landlord-dashboard"
 LOGOUT_REDIRECT_URL = "login"
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 AUTH_USER_MODEL = "accounts.User"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+RENT_BILLING_INTERVAL_SECONDS = int(os.getenv("RENT_BILLING_INTERVAL_SECONDS", str(60 * 60 * 24 * 30)))

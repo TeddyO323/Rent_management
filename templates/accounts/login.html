@@ -4,17 +4,26 @@
   {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartRent | Landlord Sign In</title>
+  <title>SmartRent | Sign In</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
   <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-overrides.css' %}">
+  <script src="{% static 'js/theme-init.js' %}"></script>
 </head>
 <body>
+  <button type="button" class="icon-button auth-theme-toggle theme-toggle" aria-label="Switch theme" title="Dark mode">
+    <i class="fa-solid fa-moon" aria-hidden="true"></i>
+  </button>
   <main class="auth-shell">
     <section class="auth-panel auth-panel--brand">
-      <p class="eyebrow">Landlord Portal</p>
-      <h1>SmartRent landlord access</h1>
+      <p class="eyebrow">SmartRent Access</p>
+      <h1>Sign in to your workspace</h1>
       <p class="lede">
-        This side of the platform is for property owners and managers. Tenant-facing access
-        will be added separately as the project grows.
+        Landlords and tenants can both sign in here. You will be routed to the right
+        workspace automatically after authentication.
       </p>
 
       <div class="callout">
@@ -27,8 +36,8 @@
     <section class="auth-panel auth-panel--form">
       <div class="form-card">
         <p class="eyebrow">Authentication</p>
-        <h2>Landlord Sign In</h2>
-        <p class="subtle">Use your landlord credentials to access the dashboard.</p>
+        <h2>Account Sign In</h2>
+        <p class="subtle">Use the credentials assigned to your account to access SmartRent.</p>
 
         {% if messages %}
           {% for message in messages %}
@@ -59,5 +68,9 @@
       </div>
     </section>
   </main>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script>
+    window.SmartRentTheme.bindToggles();
+  </script>
 </body>
 </html>

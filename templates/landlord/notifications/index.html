@@ -1,0 +1,33 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Notifications{% endblock %}
+{% block page_description %}SmartRent notifications and reminders dashboard.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation"><i class="fa-solid fa-bars-staggered"></i></button>
+        <div><span class="eyebrow">Alerts And Reminders</span><h2>Centralize every alert, reminder, and automated follow-up in one operational inbox.</h2></div>
+      </div>
+      <p class="topbar__tagline">Stay ahead of overdue rent, vacancy signals, successful payments, and maintenance escalations with smarter notifications.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-bell"></i></div><div class="metric-card__content"><span class="metric-card__label">Active Alerts</span><strong class="metric-value" data-value="12" data-format="number">0</strong><p>Prioritized operational alerts requiring attention or active monitoring.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-2</span></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-robot"></i></div><div class="metric-card__content"><span class="metric-card__label">Reminder Rules</span><strong class="metric-value" data-value="6" data-format="number">0</strong><p>Automation rules keep rent reminders and operational follow-ups moving.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+1</span></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-circle-check"></i></div><div class="metric-card__content"><span class="metric-card__label">Positive Updates</span><strong class="metric-value" data-value="14" data-format="number">0</strong><p>Payments received, tickets resolved, and occupancy wins feeding the activity stream.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+6</span></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="metric-card__content"><span class="metric-card__label">Escalations</span><strong class="metric-value" data-value="3" data-format="number">0</strong><p>Only a small portion of alerts require direct intervention from management.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-1</span></article>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Alert inbox</span><h3>Prioritized portfolio alerts</h3></div><span class="panel-pill">Live feed</span></div><div class="alerts-list" id="alertsList"></div></article>
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Automation rules</span><h3>Reminder and escalation workflows</h3></div><span class="panel-pill panel-pill--success">6 rules active</span></div><div class="automation-list" id="automationList"></div></article>
+  </section>
+
+  <section class="panel reveal"><div class="panel__header"><div><span class="section-label">Communication feed</span><h3>Recent reminders and outbound updates</h3></div></div><div class="communication-list" id="communicationList"></div></section>
+{% endblock %}

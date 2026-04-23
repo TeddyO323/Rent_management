@@ -1,0 +1,100 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Tenant Overview{% endblock %}
+{% block page_description %}SmartRent tenant overview workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Tenant Panel</span>
+          <h2>Stay on top of your home, account, and payment posture.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">This space gives you a clean view of your assigned home, billing details, and account setup in one place.</p>
+    </div>
+    <div class="topbar__actions">
+      <a href="{% url 'tenant-settings' %}" class="btn btn--primary">
+        <i class="fa-solid fa-key"></i>
+        <span>Account Settings</span>
+      </a>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="hero-panel hero-panel--compact reveal">
+    <div class="hero-panel__content">
+      <span class="section-label">Your Home Snapshot</span>
+      <h3>{{ tenant.property.name }}</h3>
+      <p>{{ tenant.property.location }} • {{ tenant.unit_number }} • {{ tenant.lease_type }}</p>
+      <div class="hero-chip-row">
+        {% for chip in tenant_workspace.hero_chips %}
+          <article class="hero-chip">
+            <strong>{{ chip.value }}</strong>
+            <span>{{ chip.label }}</span>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-grid reveal">
+    {% for metric in tenant_workspace.metrics %}
+      <article class="metric-card">
+        <div class="metric-card__icon"><i class="fa-solid {{ metric.icon }}"></i></div>
+        <div class="metric-card__content">
+          <span class="metric-card__label">{{ metric.label }}</span>
+          {% if metric.format == "currency" %}
+            <div class="metric-value" data-value="{{ metric.value }}" data-format="currency">KSh 0</div>
+          {% else %}
+            <div class="metric-value metric-value--text">{{ metric.value }}</div>
+          {% endif %}
+          <p class="metric-card__copy">{{ metric.copy }}</p>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="grid-two reveal">
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Lease Summary</span>
+          <h3>Current occupancy details</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Property</span><strong>{{ tenant.property.name }}</strong></div>
+        <div class="detail-list__row"><span>House</span><strong>{{ tenant.unit_number }}</strong></div>
+        <div class="detail-list__row"><span>Unit type</span><strong>{% if tenant.property_unit and tenant.property_unit.unit_type %}{{ tenant.property_unit.unit_type.unit_type }}{% else %}Not set{% endif %}</strong></div>
+        <div class="detail-list__row"><span>Lease type</span><strong>{{ tenant.lease_type }}</strong></div>
+        <div class="detail-list__row"><span>Lease start</span><strong>{{ tenant.lease_start }}</strong></div>
+        <div class="detail-list__row"><span>Lease end</span><strong>{{ tenant.lease_end|default:"Not applicable" }}</strong></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Account Actions</span>
+          <h3>Next things to do</h3>
+        </div>
+      </div>
+      <div class="stack-list">
+        <article class="resource-card">
+          <h4>Review your credentials</h4>
+          <p>Your tenant account is tied to your email address: {{ tenant.email }}.</p>
+        </article>
+        <article class="resource-card">
+          <h4>Update your password</h4>
+          <p>{% if request.user.password_change_required %}A password change is still recommended for your account security.{% else %}Your account password has already been updated from the default setup.{% endif %}</p>
+        </article>
+      </div>
+    </article>
+  </section>
+{% endblock %}

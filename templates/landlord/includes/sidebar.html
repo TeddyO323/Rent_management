@@ -1,0 +1,69 @@
+<div class="sidebar__top">
+  <button class="icon-button sidebar__close mobile-only" id="closeSidebar" aria-label="Close navigation">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+
+  <a href="{% url 'landlord-overview' %}" class="brand">
+    <div class="brand__mark">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div>
+      <h1>SmartRent</h1>
+      <p>Landlord command center</p>
+    </div>
+  </a>
+</div>
+
+<nav class="sidebar__nav" aria-label="Primary">
+  <a class="nav-link{% if page_key == 'overview' %} active{% endif %}" href="{% url 'landlord-overview' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-chart-line"></i></span>
+    <span>Overview</span>
+  </a>
+  <a class="nav-link{% if page_key == 'properties' %} active{% endif %}" href="{% url 'landlord-properties' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-building"></i></span>
+    <span>Properties</span>
+  </a>
+  <a class="nav-link{% if page_key == 'tenants' %} active{% endif %}" href="{% url 'landlord-tenants' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-users"></i></span>
+    <span>Tenants</span>
+  </a>
+  <a class="nav-link{% if page_key == 'payments' %} active{% endif %}" href="{% url 'landlord-payments' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-wallet"></i></span>
+    <span>Rent Payments</span>
+  </a>
+  <a class="nav-link{% if page_key == 'bills' %} active{% endif %}" href="{% url 'landlord-bills' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+    <span>Bills</span>
+  </a>
+  <a class="nav-link{% if page_key == 'maintenance' %} active{% endif %}" href="{% url 'landlord-maintenance' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+    <span>Maintenance</span>
+  </a>
+  <a class="nav-link{% if page_key == 'analytics' %} active{% endif %}" href="{% url 'landlord-analytics' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-chart-pie"></i></span>
+    <span>Analytics</span>
+  </a>
+  <a class="nav-link{% if page_key == 'notifications' %} active{% endif %}" href="{% url 'landlord-notifications' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-bell"></i></span>
+    <span>Notifications</span>
+  </a>
+  <a class="nav-link{% if page_key == 'settings' %} active{% endif %}" href="{% url 'landlord-settings' %}">
+    <span class="nav-link__icon"><i class="fa-solid fa-gear"></i></span>
+    <span>Settings</span>
+  </a>
+</nav>
+
+<div class="sidebar__footer">
+  <div class="sidebar-card">
+    <div class="sidebar-card__icon">
+      <i class="fa-solid fa-bolt"></i>
+    </div>
+    <div>
+      <h3>Automation boost</h3>
+      <p>Rent reminders and vacancy alerts are actively reducing manual follow-up across the portfolio.</p>
+    </div>
+    <a href="{% url 'landlord-notifications' %}" class="sidebar-card__link">Review alerts</a>
+  </div>
+</div>

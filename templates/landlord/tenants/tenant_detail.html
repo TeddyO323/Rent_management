@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartRent | {{ tenant.full_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-overrides.css' %}">
+  <script src="{% static 'js/theme-init.js' %}"></script>
+</head>
+<body data-page="tenants">
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+  <div class="background-grid"></div>
+
+  {% include "landlord/includes/session_banner.html" %}
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">{% include "landlord/includes/sidebar.html" %}</aside>
+    <div class="app-overlay" id="appOverlay"></div>
+
+    <main class="main-content">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="status-banner">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <section class="topbar topbar--minimal reveal">
+        <div class="topbar__intro">
+          <div class="topbar__heading">
+            <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+              <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+            <div>
+              <span class="eyebrow">Tenant Detail</span>
+              <h2>{{ tenant.full_name }}</h2>
+            </div>
+          </div>
+          <p class="topbar__tagline">{{ tenant.property.name }} • {{ tenant.unit_number }} • {{ tenant.email }}</p>
+        </div>
+        <div class="topbar__actions topbar__actions--minimal">
+          <a class="btn btn--secondary" href="{% url 'landlord-edit-tenant' tenant.id %}">Edit Tenant</a>
+          <a class="btn btn--ghost" href="{% url 'landlord-tenants' %}">Back To Tenants</a>
+        </div>
+      </section>
+
+      <div class="page-stack">
+        <section class="stats-grid reveal">
+          <article class="metric-card">
+            <div class="metric-card__content">
+              <span class="metric-card__label">Lease Type</span>
+              <div class="metric-value metric-value--text">{{ tenant.lease_type }}</div>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__content">
+              <span class="metric-card__label">Assigned House</span>
+              <div class="metric-value metric-value--text">{{ tenant.unit_number }}</div>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__content">
+              <span class="metric-card__label">Billing</span>
+              <div class="metric-value">{% if tenant.monthly_rent %}KSh {{ tenant.monthly_rent }}{% elif tenant.purchase_price %}KSh {{ tenant.purchase_price }}{% else %}KSh 0{% endif %}</div>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__content">
+              <span class="metric-card__label">Password Status</span>
+              <div class="metric-value metric-value--text">{% if default_password_active %}Default Active{% else %}Updated{% endif %}</div>
+            </div>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel reveal">
+            <div class="panel__header panel__header--stack">
+              <div>
+                <span class="section-label">Tenant Profile</span>
+                <h3>Resident and assignment information</h3>
+              </div>
+            </div>
+            <div class="detail-list">
+              <div class="detail-list__row"><span>Full name</span><strong>{{ tenant.full_name }}</strong></div>
+              <div class="detail-list__row"><span>Email</span><strong>{{ tenant.email }}</strong></div>
+              <div class="detail-list__row"><span>Phone</span><strong>{{ tenant.phone }}</strong></div>
+              <div class="detail-list__row"><span>Property</span><strong>{{ tenant.property.name }}</strong></div>
+              <div class="detail-list__row"><span>House</span><strong>{{ tenant.unit_number }}</strong></div>
+              <div class="detail-list__row"><span>Unit type</span><strong>{% if tenant.property_unit and tenant.property_unit.unit_type %}{{ tenant.property_unit.unit_type.unit_type }}{% else %}Not set{% endif %}</strong></div>
+              <div class="detail-list__row"><span>Lease start</span><strong>{{ tenant.lease_start }}</strong></div>
+              <div class="detail-list__row"><span>Lease end</span><strong>{{ tenant.lease_end|default:"Not applicable" }}</strong></div>
+            </div>
+          </article>
+
+          <article class="panel reveal">
+            <div class="panel__header panel__header--stack">
+              <div>
+                <span class="section-label">Tenant Login</span>
+                <h3>Initial access credentials</h3>
+                <p class="section-copy">Django stores passwords as hashes, so SmartRent cannot read the current password from the database later. What you see below is the generated default password based on the property and house criteria.</p>
+              </div>
+            </div>
+            <div class="stack-list">
+              <article class="resource-card">
+                <h4>Login email</h4>
+                <p>{{ tenant.email }}</p>
+              </article>
+              <article class="resource-card">
+                <h4>Generated default password</h4>
+                <p><strong>{{ initial_password }}</strong></p>
+              </article>
+              <article class="resource-card">
+                <h4>Current password state</h4>
+                <p>{% if default_password_active %}The tenant is still flagged to change the default password. The default password above should still be the active one unless it was changed outside the tenant settings flow.{% else %}The tenant has already changed their password, so the generated password above is now only a historical/default reference and not necessarily the current password.{% endif %}</p>
+              </article>
+              <form method="post" action="{% url 'landlord-delete-tenant' tenant.id %}" onsubmit="return confirm('Delete {{ tenant.full_name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn--ghost btn--danger">Delete Tenant</button>
+              </form>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

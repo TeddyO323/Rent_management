@@ -1,0 +1,44 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Notifications{% endblock %}
+{% block page_description %}SmartRent tenant notifications workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Notifications</span>
+          <h2>Stay updated on account, billing, and property activity.</h2>
+        </div>
+      </div>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Inbox</span>
+        <h3>Your latest tenant notifications</h3>
+      </div>
+    </div>
+    <div class="stack-list">
+      {% for item in tenant_notifications %}
+        <article class="resource-card">
+          <div class="resource-card__header">
+            <div>
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.copy }}</p>
+            </div>
+            <span class="status-badge status-badge--{{ item.tone }}">{{ item.tone|title }}</span>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

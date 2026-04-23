@@ -1,0 +1,91 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Analytics{% endblock %}
+{% block page_description %}SmartRent tenant analytics workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Tenant Analytics</span>
+          <h2>See the health of your account in one quick view.</h2>
+        </div>
+      </div>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="stats-grid reveal">
+    {% for metric in tenant_analytics.metrics %}
+      <article class="metric-card">
+        <div class="metric-card__icon"><i class="fa-solid {{ metric.icon }}"></i></div>
+        <div class="metric-card__content">
+          <span class="metric-card__label">{{ metric.label }}</span>
+          {% if metric.format == "currency" %}
+            <div class="metric-value" data-value="{{ metric.value }}" data-format="currency">KSh 0</div>
+          {% else %}
+            <div class="metric-value metric-value--text">{{ metric.value }}</div>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="content-grid content-grid--equal reveal">
+    <article class="panel">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Charge Breakdown</span>
+          <h3>What makes up your current cycle</h3>
+        </div>
+      </div>
+      <div class="occupancy-card">
+        <div class="chart-area chart-area--doughnut"><canvas id="tenantChargesChart"></canvas></div>
+        <div class="occupancy-legend" id="tenantChargesLegend"></div>
+      </div>
+    </article>
+    <article class="panel">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Activity Mix</span>
+          <h3>Account events in your workspace</h3>
+        </div>
+      </div>
+      <div class="chart-area chart-area--medium"><canvas id="tenantActivityChart"></canvas></div>
+    </article>
+  </section>
+
+  <section class="content-grid reveal">
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Account Signals</span>
+          <h3>What your tenant workspace is showing right now</h3>
+        </div>
+      </div>
+      <div class="stack-list">
+        <article class="resource-card">
+          <h4>Complaint activity</h4>
+          <p>You currently have {{ tenant.complaints.count }} logged complaint{{ tenant.complaints.count|pluralize }} in SmartRent.</p>
+        </article>
+        <article class="resource-card">
+          <h4>Extension activity</h4>
+          <p>You have submitted {{ tenant.lease_extension_requests.count }} lease extension request{{ tenant.lease_extension_requests.count|pluralize }}.</p>
+        </article>
+        <article class="resource-card">
+          <h4>Payment mode</h4>
+          <p>{% if tenant.autopay_enabled %}Autopay is enabled on your account.{% else %}Your account is still using manual payment mode.{% endif %}</p>
+        </article>
+      </div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ tenant_analytics|json_script:"tenant-analytics-data" }}
+{% endblock %}

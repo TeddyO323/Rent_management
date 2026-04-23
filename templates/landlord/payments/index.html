@@ -1,0 +1,76 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Rent Payments{% endblock %}
+{% block page_description %}SmartRent rent payments and collections dashboard.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Collections Desk</span>
+          <h2>See every rent transaction, outstanding balance, and collection trend from one page.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Follow payment momentum, overdue exposure, and settlement mix without leaving the SmartRent command center.</p>
+    </div>
+    <div class="topbar__actions">
+      <a href="{% url 'landlord-record-payment' %}" class="btn btn--primary"><i class="fa-solid fa-receipt"></i><span>Record Payment</span></a>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="hero-panel reveal">
+    <div class="hero-panel__copy">
+      <span class="section-label">Cash flow visibility</span>
+      <h3>Collection performance is strongest when overdue risk and payment channels stay visible.</h3>
+      <p>This page brings expected revenue, received rent, and account-level activity into one focused financial workspace.</p>
+      <div class="hero-panel__chips">
+        <div class="hero-chip"><strong>KSh {{ payments_dashboard_data.metrics.collected_this_month|floatformat:0 }}</strong><span>Collected this month</span></div>
+        <div class="hero-chip"><strong>KSh {{ payments_dashboard_data.metrics.outstanding_balance|floatformat:0 }}</strong><span>Outstanding balance</span></div>
+        <div class="hero-chip"><strong>{{ payments_dashboard_data.metrics.autopay_success }}%</strong><span>Autopay success rate</span></div>
+      </div>
+    </div>
+    <div class="hero-panel__spotlight">
+      <div class="spotlight-card"><span class="spotlight-card__label">Top gain</span><strong>Autopay up</strong><p>Recurring billing now clears most Riverpoint and Cedar Grove payments before the 3rd of the month.</p></div>
+      <div class="spotlight-card"><span class="spotlight-card__label">Collection focus</span><strong>6 overdue</strong><p>Most payment follow-up effort should remain concentrated in Bluehaven and Skyline Suites.</p></div>
+    </div>
+  </section>
+
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-money-bill-wave"></i></div><div class="metric-card__content"><span class="metric-card__label">Collected This Month</span><strong class="metric-value" data-value="{{ payments_dashboard_data.metrics.collected_this_month }}" data-format="currency">KSh 0</strong><p>Collection pace is now driven by the real recorded payments in the system.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-scale-balanced"></i></div><div class="metric-card__content"><span class="metric-card__label">Outstanding Balance</span><strong class="metric-value" data-value="{{ payments_dashboard_data.metrics.outstanding_balance }}" data-format="currency">KSh 0</strong><p>Open exposure is derived from the current balances still sitting on tenant accounts.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-hourglass-half"></i></div><div class="metric-card__content"><span class="metric-card__label">Overdue Accounts</span><strong class="metric-value" data-value="{{ payments_dashboard_data.metrics.overdue_accounts }}" data-format="number">0</strong><p>These accounts still carry an open balance that may need follow-up.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-credit-card"></i></div><div class="metric-card__content"><span class="metric-card__label">Autopay Success</span><strong class="metric-value" data-value="{{ payments_dashboard_data.metrics.autopay_success }}" data-format="percent">0%</strong><p>Autopay adoption is calculated from active tenant settings.</p></div></article>
+  </section>
+
+  <section class="content-grid content-grid--equal">
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Collection trend</span><h3>Expected rent vs collected rent</h3></div><span class="panel-pill">Last 6 months</span></div><div class="chart-area chart-area--large"><canvas id="rentChart"></canvas></div></article>
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Settlement mix</span><h3>Payment channel breakdown</h3></div></div><div class="occupancy-card"><div class="chart-area chart-area--doughnut"><canvas id="paymentMethodChart"></canvas></div><div class="occupancy-legend" id="paymentMethodLegend"></div></div></article>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div><span class="section-label">Payment activity</span><h3>Full rent transaction feed</h3></div>
+      <div class="property-controls">
+        <label class="search-field search-field--compact"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="paymentSearch" placeholder="Search payments or tenants"></label>
+        <span class="panel-pill panel-pill--success">{{ payments_dashboard_data.metrics.autopay_success }}% autopay</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="activity-table">
+        <thead><tr><th>Tenant</th><th>Unit</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="activityTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ payments_dashboard_data|json_script:"payments-dashboard-data" }}
+{% endblock %}

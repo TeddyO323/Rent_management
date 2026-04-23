@@ -1,0 +1,110 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Receipts & Payments{% endblock %}
+{% block page_description %}SmartRent tenant receipts and payments workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Receipts & Payments</span>
+          <h2>Track recurring charges, receipts, and lease extension requests.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Track your bills and payments in one place.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Total due this cycle</span>
+        <div class="metric-value" data-value="{{ tenant_receipts_data.summary.total_due }}" data-format="currency">KSh 0</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Current balance</span>
+        <div class="metric-value" data-value="{{ tenant_receipts_data.summary.current_balance }}" data-format="currency">KSh 0</div>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Bills & Payments</span>
+        <h3>Transaction history</h3>
+        <p class="section-copy">This shows all your bills and payments in chronological order.</p>
+      </div>
+    </div>
+    <div id="tenantReceiptsTable"></div>
+    <div id="tenantReceiptsPagination"></div>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Lease Extension</span>
+          <h3>Request more time on your lease</h3>
+          <p class="section-copy">This is mainly for tenants on rental terms. Purchased units do not need a lease extension.</p>
+        </div>
+      </div>
+      {% if lease_extension_form.non_field_errors %}
+        <div class="field-error">{{ lease_extension_form.non_field_errors|join:", " }}</div>
+      {% endif %}
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ lease_extension_form.requested_end_date.id_for_label }}">Requested new end date</label>
+            {{ lease_extension_form.requested_end_date }}
+            {% if lease_extension_form.requested_end_date.errors %}<div class="field-error">{{ lease_extension_form.requested_end_date.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ lease_extension_form.reason.id_for_label }}">Reason</label>
+            {{ lease_extension_form.reason }}
+            {% if lease_extension_form.reason.errors %}<div class="field-error">{{ lease_extension_form.reason.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Submit Request</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Request History</span>
+          <h3>Your submitted extension requests</h3>
+        </div>
+      </div>
+      <div class="stack-list">
+        {% for request_item in lease_extension_requests %}
+          <article class="resource-card">
+            <h4>{{ request_item.requested_end_date }}</h4>
+            <p>{{ request_item.reason }}</p>
+            <span class="status-badge status-badge--stable">{{ request_item.status }}</span>
+          </article>
+        {% empty %}
+          <article class="resource-card">
+            <h4>No requests yet</h4>
+            <p>Your lease extension requests will appear here once submitted.</p>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ tenant_receipts_data|json_script:"tenant-receipts-data" }}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "landlord/base.html" %}
+
+{% block page_title %}Payment Detail{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Payment Detail</span>
+          <h2>{{ payment.tenant.full_name }}</h2>
+        </div>
+      </div>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="panel reveal">
+    <div class="detail-list">
+      <div class="detail-list__row"><span>Amount</span><strong>KSh {{ payment.amount }}</strong></div>
+      <div class="detail-list__row"><span>Date</span><strong>{{ payment.paid_on }}</strong></div>
+      <div class="detail-list__row"><span>Method</span><strong>{{ payment.method }}</strong></div>
+      <div class="detail-list__row"><span>Property</span><strong>{{ payment.property.name }}</strong></div>
+      <div class="detail-list__row"><span>Tenant</span><strong>{{ payment.tenant.full_name }}</strong></div>
+      <div class="detail-list__row"><span>Notes</span><strong>{{ payment.notes|default:"No notes" }}</strong></div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "landlord/base.html" %}
+{% load static %}
+
+{% block page_title %}Maintenance{% endblock %}
+{% block page_description %}SmartRent maintenance operations dashboard.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation"><i class="fa-solid fa-bars-staggered"></i></button>
+        <div><span class="eyebrow">Service Ops</span><h2>Coordinate tickets, SLAs, and vendor performance from one maintenance command center.</h2></div>
+      </div>
+      <p class="topbar__tagline">Prioritize urgent requests, watch response targets, and keep residents updated on repair status.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-wrench"></i></div><div class="metric-card__content"><span class="metric-card__label">Open Tickets</span><strong class="metric-value" data-value="{{ maintenance_dashboard_data.metrics.open_tickets }}" data-format="number">0</strong><p>Tenant-submitted complaints that still need work or follow-up.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-spinner"></i></div><div class="metric-card__content"><span class="metric-card__label">In Progress</span><strong class="metric-value" data-value="{{ maintenance_dashboard_data.metrics.in_progress }}" data-format="number">0</strong><p>Complaints that have already moved into active resolution.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-check-double"></i></div><div class="metric-card__content"><span class="metric-card__label">Resolved</span><strong class="metric-value" data-value="{{ maintenance_dashboard_data.metrics.resolved }}" data-format="number">0</strong><p>Issues already closed out across the current maintenance queue.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-hourglass-half"></i></div><div class="metric-card__content"><span class="metric-card__label">Pending</span><strong class="metric-value" data-value="{{ maintenance_dashboard_data.metrics.pending }}" data-format="number">0</strong><p>Fresh complaints waiting for the first coordination step.</p></div></article>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Ticket queue</span><h3>Current maintenance requests</h3></div><span class="panel-pill panel-pill--warm">{{ maintenance_dashboard_data.metrics.open_tickets }} open tickets</span></div><div class="ticket-list" id="ticketList"></div></article>
+    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Service load</span><h3>Maintenance issue categories</h3></div><span class="panel-pill">Live complaint mix</span></div><div class="chart-area chart-area--medium"><canvas id="maintenanceChart"></canvas></div></article>
+  </section>
+
+  <section class="panel reveal"><div class="panel__header"><div><span class="section-label">Complaint feed</span><h3>Tenant-reported issues</h3></div><span class="panel-pill panel-pill--success">{{ maintenance_dashboard_data.complaints|length }} complaints</span></div><div class="vendor-list" id="vendorList"></div></section>
+{% endblock %}
+
+{% block json_data %}
+  {{ maintenance_dashboard_data|json_script:"maintenance-dashboard-data" }}
+{% endblock %}

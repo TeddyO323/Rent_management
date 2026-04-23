@@ -1,0 +1,63 @@
+{% extends "landlord/base.html" %}
+
+{% block page_title %}Bills{% endblock %}
+{% block page_description %}SmartRent landlord bills workspace.{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Billing Desk</span>
+          <h2>Create and track service charge, water, repair, and custom bills.</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Use this page to manage bills across properties and tenants from one place.</p>
+    </div>
+    <div class="topbar__actions">
+      <a href="{% url 'landlord-add-bill' %}" class="btn btn--primary">
+        <i class="fa-solid fa-file-circle-plus"></i>
+        <span>Add Bill</span>
+      </a>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="metric-card__content"><span class="metric-card__label">Total Amount Due</span><strong class="metric-value" data-value="{{ bills_dashboard_data.total_amount_due }}" data-format="currency">KSh 0</strong><p>Accumulated unpaid bills across all tenants.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-hourglass-half"></i></div><div class="metric-card__content"><span class="metric-card__label">Outstanding Bills</span><strong class="metric-value" data-value="{{ bills_dashboard_data.unpaid_count }}" data-format="number">0</strong><p>Bills that are not yet fully marked as paid.</p></div></article>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Bills Registry</span>
+        <h3>Accumulated bills by tenant</h3>
+      </div>
+    </div>
+    <div class="property-table-wrap">
+      <table class="property-table">
+        <thead>
+          <tr><th>Property</th><th>Tenant</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for entry in bills_dashboard_data.accumulated_bills %}
+            <tr>
+              <td>{{ entry.property }}</td>
+              <td>{{ entry.tenant }}</td>
+              <td>KSh {{ entry.amount_due|floatformat:0 }}</td>
+              <td>KSh {{ entry.amount_paid|floatformat:0 }}</td>
+              <td><span class="status-badge status-badge--{{ entry.status_class }}">{{ entry.status }}</span></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">No bills created yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

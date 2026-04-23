@@ -1,0 +1,33 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Bill Detail{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Bill Detail</span>
+          <h2>{{ bill.title }}</h2>
+        </div>
+      </div>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="panel reveal">
+    <div class="detail-list">
+      <div class="detail-list__row"><span>Category</span><strong>{{ bill.category }}</strong></div>
+      <div class="detail-list__row"><span>Original amount</span><strong>KSh {{ bill.amount }}</strong></div>
+      <div class="detail-list__row"><span>Remaining amount</span><strong>KSh {{ bill.remaining_amount }}</strong></div>
+      <div class="detail-list__row"><span>Status</span><strong>{{ bill.status }}</strong></div>
+      <div class="detail-list__row"><span>Due date</span><strong>{{ bill.due_date }}</strong></div>
+      <div class="detail-list__row"><span>Created</span><strong>{{ bill.created_at }}</strong></div>
+      <div class="detail-list__row"><span>Notes</span><strong>{{ bill.notes|default:"No notes" }}</strong></div>
+    </div>
+  </section>
+{% endblock %}
