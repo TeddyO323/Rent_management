@@ -1191,6 +1191,7 @@ body[data-page="properties"] .topbar .btn {
 .property-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 1120px;
 }
 
 .property-table thead th {
@@ -1716,13 +1717,22 @@ body[data-page="properties"] .topbar .btn {
   gap: 0.2rem;
 }
 
+.table-tenant--nowrap {
+  min-width: max-content;
+}
+
 .table-tenant strong {
   font-size: 0.98rem;
+  white-space: nowrap;
 }
 
 .table-tenant span,
 .activity-table td small {
   color: var(--text-muted);
+}
+
+.tenant-name-cell {
+  white-space: nowrap;
 }
 
 .table-status--paid {

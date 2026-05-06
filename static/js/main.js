@@ -429,7 +429,7 @@ const SmartRentMain = (() => {
             <tbody>
               ${items.map((tenant) => `
                 <tr>
-                  <td><div class="table-tenant"><strong>${tenant.name}</strong><span>${tenant.risk} risk</span></div></td>
+                  <td class="tenant-name-cell"><div class="table-tenant table-tenant--nowrap"><strong title="${tenant.name}">${tenant.name}</strong><span>${tenant.risk} risk</span></div></td>
                   <td>${tenant.property}</td>
                   <td>${tenant.unitType || "Not set"}</td>
                   <td>${tenant.unit}</td>
