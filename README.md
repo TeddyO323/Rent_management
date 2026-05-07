@@ -4,6 +4,10 @@ SmartRent is a rent and property management system being built with Python, Djan
 
 The system is still under construction. What exists now is no longer just a static prototype: it is an in-progress Django application with working landlord and tenant authentication, live billing flows, maintenance tracking, and event-based notifications.
 
+## Live Demo
+
+- [https://smartrent-ke.onrender.com](https://smartrent-ke.onrender.com)
+
 ## Preview
 
 The screenshot below shows the current look and feel of the system:
@@ -198,6 +202,7 @@ python3 manage.py runserver 127.0.0.1:8000
 Open:
 
 - [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- [https://smartrent-ke.onrender.com](https://smartrent-ke.onrender.com)
 
 ## Demo Credentials
 
