@@ -1,10 +1,8 @@
-# SmartRent Dashboard
+# SmartRent
 
-SmartRent is a rent management dashboard project for landlords and property managers. It started as a frontend prototype and is now being moved into a real Django application with landlord authentication and PostgreSQL-ready configuration.
+SmartRent is a rent and property management system being built with Python, Django, and PostgreSQL-ready configuration.
 
-The system is still under construction, so the current version should be treated as an in-progress product UI rather than a finished application.
-
-The project has now started moving into a real backend implementation using Python, Django, and PostgreSQL-ready configuration, beginning with landlord authentication.
+The system is still under construction. What exists now is no longer just a static prototype: it is an in-progress Django application with working landlord and tenant authentication, live billing flows, maintenance tracking, and event-based notifications.
 
 ## Preview
 
@@ -12,73 +10,166 @@ The screenshot below shows the current look and feel of the system:
 
 ![SmartRent dashboard preview](media/Screenshot%202026-04-10%20at%2015.55.36.png)
 
-## What is in the project so far
+## Current Product Scope
 
-The project currently focuses on the landlord-side user interface and dashboard experience while the backend foundation is being built out.
+SmartRent currently includes two main workspaces:
 
-- Multi-page landlord dashboard with dedicated views for overview, properties, tenants, payments, maintenance, analytics, notifications, and settings
-- Django templates for landlord pages under `templates/landlord/`
-- Reusable styling system with responsive dashboard components
-- Shared landlord shell and page behavior consolidated into `static/js/main.js`
-- Mock property, tenant, payment, maintenance, and alert data where backend data is not wired yet
-- Interactive charts rendered with Chart.js from a CDN
-- Sidebar navigation, mobile menu behavior, reveal animations, filters, and metric animations
-- Django project scaffold for backend development
-- Landlord authentication flow with a protected dashboard
-- Demo landlord and tenant accounts for local development
+- `Landlord side`
+- `Tenant side`
 
-## Landlord pages
+### Landlord side
 
-- `templates/landlord/overview/index.html`: portfolio overview dashboard
-- `templates/landlord/properties/index.html`: main properties dashboard
-- `templates/landlord/properties/add_property.html`: property creation and editing flow
-- `templates/landlord/properties/property_detail.html`: property detail page
-- `templates/landlord/tenants/index.html`: tenant records, renewals, and risk signals
-- `templates/landlord/tenants/add_tenant.html`: tenant intake flow
-- `templates/landlord/payments/index.html`: rent activity and payment breakdowns
-- `templates/landlord/maintenance/index.html`: ticket tracking and vendor performance
-- `templates/landlord/analytics/index.html`: portfolio analytics and benchmark insights
-- `templates/landlord/notifications/index.html`: alerts, communication feed, and automation rules
-- `templates/landlord/settings/index.html`: integrations, access roles, and platform settings
+Implemented landlord workflows currently include:
 
-## Tech stack
+- login and protected landlord dashboard
+- live overview page with portfolio signals and action cards
+- property creation with unit mix, renting price, and buying price
+- unit generation per property using house numbers like `House 1`, `House 2`
+- tenant creation, editing, viewing, and deletion
+- automatic tenant login account creation
+- bills management with live balances
+- payment recording and cash payment approval
+- maintenance complaint handling with status updates
+- maintenance expense records linked to complaints
+- tenant-responsible repair bills
+- live analytics page
+- persistent landlord settings
+- live notifications inbox
 
-- HTML5
-- CSS3
-- Vanilla JavaScript
+### Tenant side
+
+Implemented tenant workflows currently include:
+
+- tenant login through the shared authentication page
+- tenant overview page
+- receipts and payments workspace
+- multi-bill payment selection flow
+- rent prepayment support
+- cash, M-Pesa, and card payment paths
+- lease extension requests
+- profile editing
+- complaint logging and complaint detail tracking
+- autopay settings for rent bills only
+- analytics page
+- live notifications inbox
+
+## Key Behaviors Already Working
+
+- automatic rent billing for rental tenants every 30 days from the rent schedule anchor
+- rent prepayment stored as rent credit and applied on due date
+- non-rent overpayment stored as current balance
+- payment allocations tracked against specific bills
+- bill balances update after partial, full, and over-payments
+- cash payments stay pending until landlord approval
+- complaint status changes reflect back on the tenant side
+- maintenance expenses only create tenant bills when the cost bearer is `Tenant`
+- notifications are stored and shown per user with read and unread state
+
+## Notification System
+
+SmartRent now has a real event-based notification system.
+
+Landlords receive notifications for events such as:
+
+- new complaint submitted
+- cash payment awaiting approval
+- tenant payment confirmed
+- lease extension request submitted
+- automatic rent charge created
+
+Tenants receive notifications for events such as:
+
+- new bill added
+- payment confirmed
+- cash payment submitted
+- complaint logged
+- complaint status updated
+- lease extension submitted, approved, or declined
+- password change reminder
+- autopay enabled or disabled
+- rent due soon
+
+## Tech Stack
+
 - Python
 - Django
-- PostgreSQL-ready database configuration
-- [Chart.js](https://www.chartjs.org/) loaded via CDN
-- [Font Awesome](https://fontawesome.com/) loaded via CDN
+- PostgreSQL-ready configuration
+- SQLite fallback for local development
+- HTML templates
+- CSS
+- Vanilla JavaScript
+- [Chart.js](https://www.chartjs.org/) via CDN
+- [Font Awesome](https://fontawesome.com/) via CDN
 - Google Fonts (`Manrope` and `Sora`)
 
-## Project structure
+## Project Structure
 
 ```text
 Rent_management/
 ├── accounts/
+│   ├── migrations/
+│   ├── forms.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
 ├── config/
+├── media/
+├── static/
+│   ├── css/
+│   └── js/
+├── templates/
+│   ├── accounts/
+│   ├── landlord/
+│   └── tenant/
 ├── manage.py
 ├── requirements.txt
-├── static/
-├── templates/
 └── README.md
 ```
 
-## How it works
+## Template Organization
 
-Landlord pages now live in Django templates under `templates/landlord/`, organized by page folder.
+Landlord and tenant pages are organized by page folder.
 
-- shared shell pieces like the sidebar and session banner are included from template partials
-- each landlord section has its own folder with an `index.html` entry page
-- related pages stay in the same folder as the section they belong to, for example the properties folder contains its main page, add page, and detail page
-- shared interactions and page behavior live in `static/js/main.js`
-- some areas already use live Django data, especially landlord authentication and property management
+Examples:
 
-## Running the project
+- `templates/landlord/properties/index.html`
+- `templates/landlord/properties/add_property.html`
+- `templates/landlord/properties/property_detail.html`
+- `templates/landlord/tenants/index.html`
+- `templates/tenant/receipts/index.html`
+- `templates/tenant/complaints/detail.html`
 
-Run the Django landlord flow:
+Shared behavior is handled in:
+
+- `static/js/main.js`
+- `static/css/style.css`
+
+## Main Pages
+
+### Landlord templates
+
+- `templates/landlord/overview/index.html`
+- `templates/landlord/properties/index.html`
+- `templates/landlord/tenants/index.html`
+- `templates/landlord/payments/index.html`
+- `templates/landlord/bills/index.html`
+- `templates/landlord/maintenance/index.html`
+- `templates/landlord/analytics/index.html`
+- `templates/landlord/notifications/index.html`
+- `templates/landlord/settings/index.html`
+
+### Tenant templates
+
+- `templates/tenant/overview/index.html`
+- `templates/tenant/receipts/index.html`
+- `templates/tenant/profile/index.html`
+- `templates/tenant/complaints/index.html`
+- `templates/tenant/notifications/index.html`
+- `templates/tenant/analytics/index.html`
+- `templates/tenant/settings/index.html`
+
+## Running The Project
 
 Install dependencies:
 
@@ -86,51 +177,74 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Set your environment variables for PostgreSQL using `.env.example`, or run locally with the default SQLite fallback during early development.
-
 Apply migrations:
 
 ```bash
 python3 manage.py migrate
 ```
 
-Seed the demo accounts:
+Seed demo accounts:
 
 ```bash
 python3 manage.py seed_demo_accounts
 ```
 
-Start the server:
+Start the development server:
 
 ```bash
-python3 manage.py runserver
+python3 manage.py runserver 127.0.0.1:8000
 ```
 
-Then open `http://127.0.0.1:8000/`.
+Open:
 
-Demo landlord credentials:
+- [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+
+## Demo Credentials
+
+### Landlord
 
 - Email: `landlord.demo@smartrent.local`
 - Password: `DemoPass123!`
 
-## Current limitations
+### Tenant
 
-This project is still under construction, so a few things are not implemented yet:
+Tenant accounts are generated from the landlord side when a tenant is created.
 
-- only part of the landlord flow is database-driven today
-- tenant-side authentication and tenant-facing pages are not built yet
-- several sections still use mock operational data
-- no live API integrations
-- PostgreSQL is planned, but local development can still fall back to SQLite
+- Username: tenant email
+- Default password format: `Property-Name-House-Number`
+- Example: `Phenom-Park-House-13`
 
-## Good next steps
+Tenants are prompted to change that password from their settings page after login.
 
-- connect the dashboard to a real backend and database
-- add authentication for landlords, managers, and staff
-- implement real property, tenant, and payment management workflows
-- replace remaining page-level mock data with API-driven or model-driven data
-- continue splitting landlord functionality into smaller Django views, templates, and modules
+## Current Limitations
+
+The system is still under construction, and a few areas are still evolving:
+
+- notifications are live, but more filtering and delivery-channel logic can still be added
+- no real external payment gateway integration yet; card and M-Pesa are currently test-mode flows
+- no background worker yet; some recurring actions are request-driven
+- PostgreSQL is the intended main database, but local development can still use SQLite
+- some older templates, like `templates/landlord/dashboard.html`, remain in the repo as legacy leftovers and are not part of the primary flow
+
+## Recent Progress Snapshot
+
+Recent major milestones already implemented:
+
+- Phase 1: financial trust
+  - live bill balances
+  - payment allocation ledger
+  - bill detail views
+- Phase 2: operational workflows
+  - lease extension review flow
+  - live landlord overview
+- Phase 3: management intelligence
+  - live landlord analytics
+  - persistent landlord settings
+- Phase 4: tenant self-service polish
+  - editable tenant profile
+  - improved receipts and complaint tracking
+  - live notification system
 
 ## Summary
 
-So far, SmartRent is a strong landlord-side dashboard foundation with real Django structure, authentication, and live property management beginning to replace the original prototype. It is still under construction, and the next phase is turning the remaining mock sections into fully model-driven workflows.
+SmartRent is now an active Django product foundation for landlord and tenant workflows, not just a UI mockup. It already supports authentication, property and tenant setup, live billing, complaints, maintenance cost handling, approvals, analytics, settings, and notifications, while still being under construction as the system moves toward fuller production readiness.
