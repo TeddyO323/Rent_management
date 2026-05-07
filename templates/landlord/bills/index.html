@@ -38,26 +38,45 @@
         <span class="section-label">Bills Registry</span>
         <h3>Accumulated bills by tenant</h3>
       </div>
+      <div class="property-controls">
+        <label class="search-field search-field--compact">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" id="billSearch" placeholder="Search property, tenant, or bill status" autocomplete="off">
+        </label>
+        <label class="select-field select-field--view">
+          <span>Property</span>
+          <select id="billPropertyFilter">
+            <option value="">All properties</option>
+            {% for property_name in bills_dashboard_data.filters.properties %}
+              <option value="{{ property_name }}">{{ property_name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="select-field select-field--view">
+          <span>Status</span>
+          <select id="billStatusFilter">
+            <option value="">All statuses</option>
+            {% for status in bills_dashboard_data.filters.statuses %}
+              <option value="{{ status }}">{{ status }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="select-field select-field--view">
+          <span>Category</span>
+          <select id="billCategoryFilter">
+            <option value="">All categories</option>
+            {% for category in bills_dashboard_data.filters.categories %}
+              <option value="{{ category }}">{{ category }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
     </div>
-    <div class="property-table-wrap">
-      <table class="property-table">
-        <thead>
-          <tr><th>Property</th><th>Tenant</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {% for entry in bills_dashboard_data.accumulated_bills %}
-            <tr>
-              <td>{{ entry.property }}</td>
-              <td>{{ entry.tenant }}</td>
-              <td>KSh {{ entry.amount_due|floatformat:0 }}</td>
-              <td>KSh {{ entry.amount_paid|floatformat:0 }}</td>
-              <td><span class="status-badge status-badge--{{ entry.status_class }}">{{ entry.status }}</span></td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="5">No bills created yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    <div id="billsTable"></div>
+    <div id="billsPagination"></div>
   </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ bills_dashboard_data|json_script:"bills-dashboard-data" }}
 {% endblock %}

@@ -1045,6 +1045,15 @@ body[data-page="properties"] .topbar .btn {
   border: 1px solid rgba(17, 24, 39, 0.05);
 }
 
+.alert-item--muted {
+  opacity: 0.72;
+}
+
+.alert-item__body {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .alert-item__icon {
   width: 2.4rem;
   height: 2.4rem;
@@ -1092,6 +1101,15 @@ body[data-page="properties"] .topbar .btn {
   font-size: 0.82rem;
   font-weight: 800;
   color: var(--text-soft);
+}
+
+.notification-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .insight-panel {
@@ -1215,6 +1233,10 @@ body[data-page="properties"] .topbar .btn {
   border-bottom: 0;
 }
 
+.property-table--compact {
+  min-width: 840px;
+}
+
 .property-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1228,6 +1250,18 @@ body[data-page="properties"] .topbar .btn {
 
 .property-actions__form {
   margin: 0;
+}
+
+.table-action-link {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 800;
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.table-action-link:hover {
+  text-decoration: underline;
 }
 
 .property-action-btn {
@@ -1491,6 +1525,10 @@ body[data-page="properties"] .topbar .btn {
   gap: 1rem;
 }
 
+.stack-list--tight {
+  gap: 0.75rem;
+}
+
 .unit-type-table-wrap {
   overflow-x: auto;
   border: 1px solid rgba(17, 24, 39, 0.06);
@@ -1507,6 +1545,22 @@ body[data-page="properties"] .topbar .btn {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
+}
+
+.inline-action-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.inline-action-row__field {
+  flex: 1 1 auto;
+}
+
+.panel--nested {
+  padding: var(--space-5);
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .property-card {
@@ -1870,6 +1924,11 @@ body[data-page="properties"] .topbar .btn {
 .note-item:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
+}
+
+.resource-card--link {
+  text-decoration: none;
+  color: inherit;
 }
 
 .resource-card h4,

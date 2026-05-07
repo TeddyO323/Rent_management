@@ -1,0 +1,76 @@
+{% extends "tenant/base.html" %}
+
+{% block page_title %}Complaint Detail{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Complaint Detail</span>
+          <h2>{{ complaint.title }}</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Track the latest response on this issue and any bill linked to the repair.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="content-grid">
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Issue Summary</span>
+          <h3>Complaint information</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Category</span><strong>{{ complaint.category }}</strong></div>
+        <div class="detail-list__row"><span>Status</span><strong>{{ complaint.status }}</strong></div>
+        <div class="detail-list__row"><span>Reported on</span><strong>{{ complaint.created_at }}</strong></div>
+        <div class="detail-list__row"><span>Property</span><strong>{{ complaint.tenant.property.name }}</strong></div>
+        <div class="detail-list__row"><span>House</span><strong>{{ complaint.tenant.unit_number }}</strong></div>
+        <div class="detail-list__row"><span>Description</span><strong>{{ complaint.description }}</strong></div>
+      </div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Landlord Update</span>
+          <h3>Latest response</h3>
+        </div>
+      </div>
+      <div class="stack-list">
+        <article class="resource-card">
+          <h4>{{ complaint.status }}</h4>
+          <p>
+            {% if complaint.landlord_notes %}
+              {{ complaint.landlord_notes }}
+            {% else %}
+              No landlord note has been added to this complaint yet.
+            {% endif %}
+          </p>
+        </article>
+        {% if linked_bills %}
+          <article class="resource-card">
+            <h4>Repair cost linked to this issue</h4>
+            <p>If the landlord marked the repair as tenant-responsible, the related bill appears here.</p>
+            <div class="stack-list stack-list--tight">
+              {% for bill in linked_bills %}
+                <a href="{% url 'tenant-bill-detail' bill.id %}" class="resource-card resource-card--link">
+                  <h4>{{ bill.title }}</h4>
+                  <p>{{ bill.category }} · KSh {{ bill.remaining_amount }} remaining</p>
+                </a>
+              {% endfor %}
+            </div>
+          </article>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+{% endblock %}

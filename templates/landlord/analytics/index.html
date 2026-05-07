@@ -18,16 +18,15 @@
 
 {% block content %}
   <section class="stats-grid reveal">
-    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-chart-line"></i></div><div class="metric-card__content"><span class="metric-card__label">NOI Trend</span><strong class="metric-value" data-value="8.2" data-format="percent">0%</strong><p>Overall operating income remains on an upward slope this quarter.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+2.4%</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-bullseye"></i></div><div class="metric-card__content"><span class="metric-card__label">Forecast Accuracy</span><strong class="metric-value" data-value="94.7" data-format="percent">0%</strong><p>Portfolio forecasts are staying close to actual collection outcomes.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+2.3%</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-wave-square"></i></div><div class="metric-card__content"><span class="metric-card__label">Arrears Ratio</span><strong class="metric-value" data-value="4.6" data-format="percent">0%</strong><p>Late-payment pressure is manageable but still concentrated in two buildings.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-0.9%</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-door-open"></i></div><div class="metric-card__content"><span class="metric-card__label">Portfolio Occupancy</span><strong class="metric-value" data-value="87.4" data-format="percent">0%</strong><p>Occupancy continues to stabilize across the portfolio despite softness in two assets.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+3.4%</span></article>
+    {% for metric in analytics_dashboard_data.metrics %}
+      <article class="metric-card{% if metric.accent %} metric-card--accent{% endif %}"><div class="metric-card__icon{% if metric.iconTone %} metric-card__icon--{{ metric.iconTone }}{% endif %}"><i class="fa-solid {{ metric.icon }}"></i></div><div class="metric-card__content"><span class="metric-card__label">{{ metric.label }}</span><strong class="metric-value" data-value="{{ metric.value }}" data-format="{{ metric.format }}">{% if metric.format == "percent" %}0%{% else %}0{% endif %}</strong><p>{{ metric.copy }}</p></div><span class="trend trend--{{ metric.trendStyle }}"><i class="fa-solid {% if metric.trendStyle == 'negative' %}fa-arrow-trend-down{% else %}fa-arrow-trend-up{% endif %}"></i>{{ metric.trendLabel }}</span></article>
+    {% endfor %}
   </section>
 
   <section class="analytics-layout">
     <div class="analytics-layout__main">
       <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Revenue analytics</span><h3>Expected rent vs collected rent</h3></div><span class="panel-pill">Last 6 months</span></div><div class="chart-area chart-area--large"><canvas id="rentChart"></canvas></div></article>
-      <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Operational load</span><h3>Maintenance issue categories</h3></div><span class="panel-pill panel-pill--warm">Avg. resolution 1.8 days</span></div><div class="chart-area chart-area--medium"><canvas id="maintenanceChart"></canvas></div></article>
+      <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Operational load</span><h3>Maintenance issue categories</h3></div><span class="panel-pill panel-pill--warm">Live complaint mix</span></div><div class="chart-area chart-area--medium"><canvas id="maintenanceChart"></canvas></div></article>
     </div>
     <aside class="analytics-layout__side">
       <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Occupancy mix</span><h3>Portfolio unit status</h3></div></div><div class="occupancy-card"><div class="chart-area chart-area--doughnut"><canvas id="occupancyChart"></canvas></div><div class="occupancy-legend" id="occupancyLegend"></div></div></article>
@@ -36,4 +35,8 @@
   </section>
 
   <section class="panel insight-panel reveal"><div class="panel__header"><div><span class="section-label">AI insight</span><h3 id="insightTitle">Portfolio recommendation</h3></div><div class="insight-badge"><i class="fa-solid fa-wand-magic"></i>Smart recommendation</div></div><p class="insight-copy" id="insightCopy"></p><div class="insight-actions insight-actions--inline"><a href="{% url 'landlord-properties' %}" class="btn btn--primary">Open property plan</a><a href="{% url 'landlord-notifications' %}" class="btn btn--ghost">Check automations</a></div></section>
+{% endblock %}
+
+{% block json_data %}
+  {{ analytics_dashboard_data|json_script:"analytics-dashboard-data" }}
 {% endblock %}

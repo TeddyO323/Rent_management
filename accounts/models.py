@@ -60,6 +60,33 @@ class User(AbstractUser):
         return f"{self.email} ({self.role})"
 
 
+class LandlordSettings(models.Model):
+    landlord = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="landlord_settings",
+    )
+    business_name = models.CharField(max_length=255, blank=True)
+    support_email = models.EmailField(blank=True)
+    support_phone = models.CharField(max_length=32, blank=True)
+    owner_digest_enabled = models.BooleanField(default=True)
+    weekly_report_enabled = models.BooleanField(default=True)
+    maintenance_escalation_enabled = models.BooleanField(default=True)
+    autopay_nudges_enabled = models.BooleanField(default=False)
+    rent_reminder_days = models.PositiveSmallIntegerField(default=5)
+    overdue_follow_up_days = models.PositiveSmallIntegerField(default=2)
+    maintenance_escalation_hours = models.PositiveSmallIntegerField(default=8)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Landlord settings"
+        verbose_name_plural = "Landlord settings"
+
+    def __str__(self):
+        return self.business_name or self.landlord.full_name or self.landlord.email
+
+
 class Property(models.Model):
     class Status(models.TextChoices):
         HIGH_PERFORMING = "High Performing", "High Performing"
@@ -205,6 +232,12 @@ class Tenant(models.Model):
     emergency_contact_relationship = models.CharField(max_length=50, blank=True)
     occupation = models.CharField(max_length=100, blank=True)
     autopay_enabled = models.BooleanField(default=False)
+    autopay_bank_name = models.CharField(max_length=120, blank=True)
+    autopay_account_holder = models.CharField(max_length=255, blank=True)
+    autopay_account_number = models.CharField(max_length=64, blank=True)
+    autopay_card_number = models.CharField(max_length=32, blank=True)
+    autopay_card_expiry = models.CharField(max_length=10, blank=True)
+    rent_credit_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -242,6 +275,8 @@ class LeaseExtensionRequest(models.Model):
     requested_end_date = models.DateField()
     reason = models.TextField()
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    landlord_notes = models.TextField(blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -264,6 +299,7 @@ class Complaint(models.Model):
         PENDING = "Pending", "Pending"
         IN_PROGRESS = "In Progress", "In Progress"
         RESOLVED = "Resolved", "Resolved"
+        REJECTED = "Rejected", "Rejected"
 
     tenant = models.ForeignKey(
         Tenant,
@@ -274,6 +310,7 @@ class Complaint(models.Model):
     category = models.CharField(max_length=30, choices=Category.choices)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    landlord_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -281,6 +318,90 @@ class Complaint(models.Model):
 
     def __str__(self):
         return f"{self.tenant.full_name} - {self.title}"
+
+
+class Notification(models.Model):
+    class Category(models.TextChoices):
+        PAYMENTS = "Payments & Bills", "Payments & Bills"
+        LEASE = "Lease & Occupancy", "Lease & Occupancy"
+        MAINTENANCE = "Maintenance & Account", "Maintenance & Account"
+        ACCOUNT = "Account", "Account"
+
+    class Priority(models.TextChoices):
+        HIGH = "High", "High"
+        MEDIUM = "Medium", "Medium"
+        LOW = "Low", "Low"
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notifications_received",
+    )
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notifications",
+    )
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notifications",
+    )
+    category = models.CharField(max_length=40, choices=Category.choices)
+    priority = models.CharField(max_length=10, choices=Priority.choices, default=Priority.MEDIUM)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    link_url = models.CharField(max_length=255, blank=True)
+    dedupe_key = models.CharField(max_length=255, blank=True)
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["is_read", "-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.recipient.email} - {self.title}"
+
+
+class MaintenanceExpense(models.Model):
+    class CostBearer(models.TextChoices):
+        TENANT = "Tenant", "Tenant"
+        MANAGEMENT = "Management", "Management"
+        LANDLORD = "Landlord", "Landlord"
+
+    complaint = models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name="expenses",
+    )
+    landlord = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="maintenance_expenses",
+    )
+    bill = models.OneToOneField(
+        "Bill",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="maintenance_expense",
+    )
+    title = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    cost_bearer = models.CharField(max_length=20, choices=CostBearer.choices)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.complaint.title} - {self.title}"
 
 
 class Bill(models.Model):
@@ -341,6 +462,16 @@ class Payment(models.Model):
         CASH = "Cash", "Cash"
         CARD = "Card", "Card"
 
+    class Status(models.TextChoices):
+        PENDING = "Pending", "Pending"
+        CONFIRMED = "Confirmed", "Confirmed"
+        REJECTED = "Rejected", "Rejected"
+
+    class Scope(models.TextChoices):
+        BILL = "Bill", "Specific Bill"
+        RENT = "Rent", "Rent"
+        ALL = "All", "All Open Bills"
+
     landlord = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -356,8 +487,19 @@ class Payment(models.Model):
         on_delete=models.CASCADE,
         related_name="payments",
     )
+    bill = models.ForeignKey(
+        Bill,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments",
+    )
+    selected_bill_ids = models.TextField(blank=True)
+    scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.ALL)
     method = models.CharField(max_length=20, choices=Method.choices)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.CONFIRMED)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    rent_periods = models.PositiveIntegerField(default=0)
     paid_on = models.DateField()
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -367,3 +509,30 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.tenant.full_name} - {self.amount} on {self.paid_on}"
+
+
+class PaymentAllocation(models.Model):
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+    )
+    bill = models.ForeignKey(
+        Bill,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["payment", "bill"],
+                name="unique_payment_bill_allocation",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.payment} -> {self.bill} ({self.amount})"

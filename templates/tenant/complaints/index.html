@@ -21,6 +21,27 @@
 {% endblock %}
 
 {% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Open complaints</span>
+        <div class="metric-value">{{ complaints_payload.summary.pending|add:complaints_payload.summary.inProgress }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">In progress</span>
+        <div class="metric-value">{{ complaints_payload.summary.inProgress }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Resolved</span>
+        <div class="metric-value">{{ complaints_payload.summary.resolved }}</div>
+      </div>
+    </article>
+  </section>
+
   <section class="content-grid">
     <article class="panel reveal">
       <div class="panel__header panel__header--stack">
@@ -59,6 +80,25 @@
         <div>
           <span class="section-label">Complaint History</span>
           <h3>Your reported issues</h3>
+          <p class="section-copy">Open any complaint to see the landlord note, track the latest status, and follow any repair cost that was assigned back to you.</p>
+        </div>
+        <div class="property-controls">
+          <label class="search-field search-field--compact">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="tenantComplaintSearch" placeholder="Search complaints" autocomplete="off">
+          </label>
+          <label class="select-field select-field--view">
+            <span>Status</span>
+            <select id="tenantComplaintStatusFilter">
+              <option value="">All statuses</option>
+            </select>
+          </label>
+          <label class="select-field select-field--view">
+            <span>Category</span>
+            <select id="tenantComplaintCategoryFilter">
+              <option value="">All categories</option>
+            </select>
+          </label>
         </div>
       </div>
       <div id="tenantComplaintsTable"></div>

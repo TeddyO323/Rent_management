@@ -232,32 +232,6 @@
             <div class="tenant-form-section">
               <div class="panel__header panel__header--stack">
                 <div>
-                  <span class="section-label">Payment Setup</span>
-                  <h3>Autopay configuration</h3>
-                  <p class="section-copy">Enable automatic rent payments for this tenant.</p>
-                </div>
-              </div>
-
-              <div class="tenant-form__grid">
-                <div class="tenant-form__field tenant-form__field--toggle">
-                  <div class="toggle-row">
-                    <div class="toggle-info">
-                      <label for="{{ form.autopay_enabled.id_for_label }}" class="toggle-label">Enable autopay</label>
-                      <p class="toggle-description">When enabled, rent will be automatically collected on the due date each month.</p>
-                    </div>
-                    <label class="toggle-switch">
-                      {{ form.autopay_enabled }}
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-                  {% if form.autopay_enabled.errors %}<div class="field-error">{{ form.autopay_enabled.errors|join:", " }}</div>{% endif %}
-                </div>
-              </div>
-            </div>
-
-            <div class="tenant-form-section">
-              <div class="panel__header panel__header--stack">
-                <div>
                   <span class="section-label">Additional Notes</span>
                   <h3>Internal remarks</h3>
                   <p class="section-copy">Any extra context or reminders about this tenant.</p>

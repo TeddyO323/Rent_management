@@ -16,8 +16,7 @@
         <h2>Operate your entire portfolio from one polished workspace.</h2>
       </div>
     </div>
-    <p class="topbar__tagline">Track cash flow, occupancy, maintenance response times, and smart alerts across every
-      building in real time.</p>
+    <p class="topbar__tagline">Track cash flow, occupancy, maintenance response times, and the next highest-priority landlord actions in real time.</p>
   </div>
   <div class="topbar__actions">
     <a class="btn btn--primary" href="{% url 'landlord-add-property' %}">
@@ -25,73 +24,107 @@
       <span>Add Property</span>
     </a>
   </div>
-
 </header>
 {% endblock %}
 
 {% block content %}
 <section class="hero-panel reveal">
   <div class="hero-panel__copy">
-    <span class="section-label">Premium dashboard snapshot</span>
-    <h3>Portfolio health is trending up with stronger collections and fewer unresolved issues.</h3>
-    <p>SmartRent surfaces the next best action for landlords before revenue risk grows. Every number on this page is
-      wired to a polished portfolio view that feels production-ready.</p>
+    <span class="section-label">Live portfolio snapshot</span>
+    <h3>See the active collection, occupancy, and approvals picture before revenue risk grows.</h3>
+    <p>This overview now reflects live portfolio posture instead of a placeholder dashboard, so the next landlord actions stay visible.</p>
     <div class="hero-panel__chips">
-      <div class="hero-chip"><strong>174 Units</strong><span>Across 5 active properties</span></div>
-      <div class="hero-chip"><strong>93.6%</strong><span>On-time payment adherence</span></div>
-      <div class="hero-chip"><strong>4.1 hrs</strong><span>Avg. first-response time</span></div>
+      {% for chip in overview_dashboard_data.hero.chips %}
+        <div class="hero-chip"><strong>{{ chip.value }}</strong><span>{{ chip.label }}</span></div>
+      {% endfor %}
     </div>
   </div>
   <div class="hero-panel__spotlight">
-    <div class="spotlight-card">
-      <span class="spotlight-card__label">Net collection pace</span>
-      <strong>91.1%</strong>
-      <p>Expected rent is being recovered at a healthy pace this month thanks to autopay and early follow-ups.</p>
-    </div>
-    <div class="spotlight-card">
-      <span class="spotlight-card__label">Vacancy watch</span>
-      <strong>2 buildings</strong>
-      <p>Skyline Suites and Bluehaven Apartments need targeted leasing attention this week.</p>
-    </div>
+    {% for spotlight in overview_dashboard_data.hero.spotlights %}
+      <div class="spotlight-card">
+        <span class="spotlight-card__label">{{ spotlight.label }}</span>
+        <strong>{{ spotlight.value }}</strong>
+        <p>{{ spotlight.text }}</p>
+      </div>
+    {% endfor %}
   </div>
 </section>
 
 <section class="stats-grid reveal">
-  <article class="metric-card metric-card--accent">
-    <div class="metric-card__icon"><i class="fa-solid fa-coins"></i></div>
-    <div class="metric-card__content">
-      <span class="metric-card__label">Monthly Collection</span>
-      <strong class="metric-value" data-value="2840000" data-format="currency">KSh 0</strong>
-      <p>Collected from 178 completed rent transactions this cycle.</p>
+  {% for metric in overview_dashboard_data.metrics %}
+    <article class="metric-card{% if metric.accent %} metric-card--accent{% endif %}">
+      <div class="metric-card__icon{% if metric.iconTone %} metric-card__icon--{{ metric.iconTone }}{% endif %}"><i class="fa-solid {{ metric.icon }}"></i></div>
+      <div class="metric-card__content">
+        <span class="metric-card__label">{{ metric.label }}</span>
+        <strong class="metric-value" data-value="{{ metric.value }}" data-format="{{ metric.format }}">
+          {% if metric.format == "currency" %}KSh 0{% elif metric.format == "percent" %}0%{% else %}0{% endif %}
+        </strong>
+        <p>{{ metric.copy }}</p>
+      </div>
+      <span class="trend trend--{{ metric.trendStyle }}">
+        <i class="fa-solid {% if metric.trendStyle == 'negative' %}fa-arrow-trend-down{% else %}fa-arrow-trend-up{% endif %}"></i>{{ metric.trendLabel }}
+      </span>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="content-grid reveal">
+  <article class="panel">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Action board</span>
+        <h3>What needs landlord attention now</h3>
+        <p class="section-copy">These cards turn live portfolio signals into immediate next steps.</p>
+      </div>
     </div>
-    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+12%</span>
+    <div class="resource-grid">
+      {% for action in overview_dashboard_data.quickActions %}
+        <article class="resource-card">
+          <div class="resource-card__header">
+            <div>
+              <h4>{{ action.title }}</h4>
+              <p>{{ action.copy }}</p>
+            </div>
+            <span class="status-badge status-badge--{% if action.tone == 'stable' %}stable{% else %}needs-attention{% endif %}">{{ action.count }}</span>
+          </div>
+          <a href="{{ action.url }}" class="table-action-link">{{ action.button }}</a>
+        </article>
+      {% endfor %}
+    </div>
   </article>
-  <article class="metric-card">
-    <div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-door-open"></i></div>
-    <div class="metric-card__content">
-      <span class="metric-card__label">Occupancy Rate</span>
-      <strong class="metric-value" data-value="87.4" data-format="percent">0%</strong>
-      <p>Strong occupancy across stabilized properties with room to optimize two sites.</p>
+
+  <article class="panel">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Extension queue</span>
+        <h3>Lease requests awaiting a decision</h3>
+      </div>
+      <a href="{% url 'landlord-tenants' %}" class="panel-pill">Open full queue</a>
     </div>
-    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+3.4%</span>
-  </article>
-  <article class="metric-card">
-    <div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-    <div class="metric-card__content">
-      <span class="metric-card__label">Open Maintenance Tickets</span>
-      <strong class="metric-value" data-value="14" data-format="number">0</strong>
-      <p>Most active requests are plumbing and electrical, with response time improving.</p>
+    <div class="note-list">
+      {% for item in overview_dashboard_data.extensionQueue %}
+        <article class="note-item">
+          <div class="note-item__header">
+            <div>
+              <h4>{{ item.tenant }}</h4>
+              <p>{{ item.property }} • {{ item.unit }} • Request to {{ item.requestedEnd }}</p>
+            </div>
+            <span class="status-badge status-badge--{% if item.status == 'Under Review' %}stable{% else %}needs-attention{% endif %}">{{ item.status }}</span>
+          </div>
+          <a href="{{ item.detailUrl }}" class="table-action-link">Review request</a>
+        </article>
+      {% empty %}
+        <article class="note-item">
+          <div class="note-item__header">
+            <div>
+              <h4>No requests waiting</h4>
+              <p>Your lease extension queue is currently clear.</p>
+            </div>
+          </div>
+          <p>New extension requests will appear here as soon as tenants submit them.</p>
+        </article>
+      {% endfor %}
     </div>
-    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-9%</span>
-  </article>
-  <article class="metric-card">
-    <div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
-    <div class="metric-card__content">
-      <span class="metric-card__label">Late Payments</span>
-      <strong class="metric-value" data-value="6" data-format="number">0</strong>
-      <p>Follow-up reminders were sent automatically to minimize overdue exposure.</p>
-    </div>
-    <span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-4%</span>
   </article>
 </section>
 
@@ -115,60 +148,35 @@
         <div>
           <span class="section-label">Properties and units</span>
           <h3>Portfolio performance preview</h3>
-          <p class="section-copy">Review top-performing buildings and vacancy signals before you dive into the dedicated
-            properties page.</p>
+          <p class="section-copy">The strongest and weakest occupancy signals now come from your saved properties and active occupancies.</p>
         </div>
         <a href="{% url 'landlord-properties' %}" class="panel-pill">Open properties</a>
       </div>
       <div class="properties-grid">
-        <article class="property-card">
-          <div class="property-card__top">
-            <div class="property-card__title">
-              <h4>Riverpoint Residences</h4>
-              <p><i class="fa-solid fa-location-dot"></i> Westlands, Nairobi</p>
-            </div><span class="status-badge status-badge--high-performing">High Performing</span>
-          </div>
-          <div class="property-card__meta">
-            <div class="meta-stack"><span>Units</span><strong>48</strong></div>
-            <div class="meta-stack"><span>Occupied</span><strong>46</strong></div>
-          </div>
-          <div class="progress-group">
-            <div class="progress-group__label"><span>Occupancy progress</span><strong>96%</strong></div>
-            <div class="progress-bar"><span style="width:96%"></span></div>
-          </div>
-        </article>
-        <article class="property-card">
-          <div class="property-card__top">
-            <div class="property-card__title">
-              <h4>Maple Court Lofts</h4>
-              <p><i class="fa-solid fa-location-dot"></i> Kilimani, Nairobi</p>
-            </div><span class="status-badge status-badge--stable">Stable</span>
-          </div>
-          <div class="property-card__meta">
-            <div class="meta-stack"><span>Units</span><strong>32</strong></div>
-            <div class="meta-stack"><span>Occupied</span><strong>29</strong></div>
-          </div>
-          <div class="progress-group">
-            <div class="progress-group__label"><span>Occupancy progress</span><strong>91%</strong></div>
-            <div class="progress-bar"><span style="width:91%"></span></div>
-          </div>
-        </article>
-        <article class="property-card">
-          <div class="property-card__top">
-            <div class="property-card__title">
-              <h4>Skyline Suites</h4>
-              <p><i class="fa-solid fa-location-dot"></i> Upper Hill, Nairobi</p>
-            </div><span class="status-badge status-badge--needs-attention">Needs Attention</span>
-          </div>
-          <div class="property-card__meta">
-            <div class="meta-stack"><span>Units</span><strong>18</strong></div>
-            <div class="meta-stack"><span>Occupied</span><strong>13</strong></div>
-          </div>
-          <div class="progress-group">
-            <div class="progress-group__label"><span>Occupancy progress</span><strong>72%</strong></div>
-            <div class="progress-bar"><span style="width:72%"></span></div>
-          </div>
-        </article>
+        {% for property_item in overview_dashboard_data.featuredProperties %}
+          <article class="property-card">
+            <div class="property-card__top">
+              <div class="property-card__title">
+                <h4>{{ property_item.name }}</h4>
+                <p><i class="fa-solid fa-location-dot"></i> {{ property_item.location }}</p>
+              </div>
+              <span class="status-badge status-badge--{{ property_item.status|lower|slugify }}">{{ property_item.status }}</span>
+            </div>
+            <div class="property-card__meta">
+              <div class="meta-stack"><span>Units</span><strong>{{ property_item.units }}</strong></div>
+              <div class="meta-stack"><span>Occupied</span><strong>{{ property_item.occupiedUnits }}</strong></div>
+            </div>
+            <div class="progress-group">
+              <div class="progress-group__label"><span>Occupancy progress</span><strong>{{ property_item.occupancy }}%</strong></div>
+              <div class="progress-bar"><span style="width:{{ property_item.occupancy }}%"></span></div>
+            </div>
+          </article>
+        {% empty %}
+          <article class="resource-card">
+            <h4>No properties yet</h4>
+            <p>Add your first property to begin tracking portfolio performance from this overview.</p>
+          </article>
+        {% endfor %}
       </div>
     </article>
   </div>
@@ -195,35 +203,58 @@
           <span class="section-label">Smart alerts</span>
           <h3>Live reminders and portfolio signals</h3>
         </div>
-        <a href="{% url 'landlord-notifications' %}" class="panel-pill">See all</a>
       </div>
       <div class="alerts-list">
-        <article class="alert-item">
-          <div class="alert-item__icon alert-item__icon--warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
-          <div>
-            <h4>Skyline Suites occupancy slipped</h4>
-            <p>Vacancy is climbing and may affect next month’s cash flow without faster leasing support.</p><span
-              class="alert-item__time">12 min ago</span>
-          </div>
-        </article>
-        <article class="alert-item">
-          <div class="alert-item__icon alert-item__icon--success"><i class="fa-solid fa-circle-check"></i></div>
-          <div>
-            <h4>Riverpoint collections closed strong</h4>
-            <p>Autopay and early reminder timing helped Riverpoint exceed expected collection pace.</p><span
-              class="alert-item__time">1 hour ago</span>
-          </div>
-        </article>
-        <article class="alert-item">
-          <div class="alert-item__icon alert-item__icon--info"><i class="fa-solid fa-bell"></i></div>
-          <div>
-            <h4>Renewals opening this week</h4>
-            <p>Several strong-paying tenants are entering early renewal season and should be contacted first.</p><span
-              class="alert-item__time">Today</span>
-          </div>
-        </article>
+        {% for alert in overview_dashboard_data.alerts %}
+          <article class="alert-item">
+            <div class="alert-item__icon alert-item__icon--{% if alert.tone == 'success' %}success{% else %}warning{% endif %}">
+              <i class="fa-solid {% if alert.tone == 'success' %}fa-circle-check{% elif alert.tone == 'info' %}fa-bell{% else %}fa-triangle-exclamation{% endif %}"></i>
+            </div>
+            <div>
+              <h4>{{ alert.title }}</h4>
+              <p>{{ alert.copy }}</p>
+              <span class="alert-item__time">{{ alert.time }}</span>
+              <div style="margin-top: 0.75rem;">
+                <a href="{{ alert.actionUrl }}" class="table-action-link">{{ alert.actionLabel }}</a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Cash approvals</span>
+          <h3>Pending payment confirmations</h3>
+        </div>
+        <a href="{% url 'landlord-payments' %}" class="panel-pill">Open payments</a>
+      </div>
+      <div class="stack-list">
+        {% for item in overview_dashboard_data.cashApprovals %}
+          <article class="resource-card">
+            <div class="resource-card__header">
+              <div>
+                <h4>{{ item.tenant }}</h4>
+                <p>{{ item.property }} • {{ item.date }}</p>
+              </div>
+              <span class="resource-card__value">KSh {{ item.amount|floatformat:0 }}</span>
+            </div>
+            <a href="{{ item.detailUrl }}" class="table-action-link">View payment</a>
+          </article>
+        {% empty %}
+          <article class="resource-card">
+            <h4>No pending cash approvals</h4>
+            <p>Cash submissions that need confirmation will appear here.</p>
+          </article>
+        {% endfor %}
       </div>
     </article>
   </aside>
 </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ overview_dashboard_data|json_script:"overview-dashboard-data" }}
 {% endblock %}

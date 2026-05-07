@@ -24,9 +24,39 @@
       <div class="detail-list__row"><span>Amount</span><strong>KSh {{ payment.amount }}</strong></div>
       <div class="detail-list__row"><span>Date</span><strong>{{ payment.paid_on }}</strong></div>
       <div class="detail-list__row"><span>Method</span><strong>{{ payment.method }}</strong></div>
+      <div class="detail-list__row"><span>Status</span><strong>{{ payment.status }}</strong></div>
+      <div class="detail-list__row"><span>Scope</span><strong>{{ payment.scope }}</strong></div>
       <div class="detail-list__row"><span>Property</span><strong>{{ payment.property.name }}</strong></div>
       <div class="detail-list__row"><span>Tenant</span><strong>{{ payment.tenant.full_name }}</strong></div>
       <div class="detail-list__row"><span>Notes</span><strong>{{ payment.notes|default:"No notes" }}</strong></div>
+    </div>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Applied Bills</span>
+        <h3>Where this payment went</h3>
+      </div>
+    </div>
+    <div class="property-table-wrap">
+      <table class="property-table property-table--compact">
+        <thead>
+          <tr><th>Bill</th><th>Category</th><th>Applied Amount</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for allocation in payment_allocations %}
+            <tr>
+              <td>{{ allocation.bill.title }}</td>
+              <td>{{ allocation.bill.category }}</td>
+              <td>KSh {{ allocation.amount|floatformat:0 }}</td>
+              <td><a class="table-action-link" href="{% url 'landlord-bill-detail' allocation.bill.id %}">View bill</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">No bill allocations were recorded for this payment.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </section>
 {% endblock %}

@@ -152,6 +152,40 @@
       </div>
     </article>
   </section>
+
+  <section class="panel reveal">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Lease extension requests</span>
+        <h3>Requests waiting for landlord action</h3>
+        <p class="section-copy">Approve, decline, or leave a request under review from one queue.</p>
+      </div>
+    </div>
+    <div class="property-table-wrap">
+      <table class="property-table">
+        <thead><tr><th>Tenant</th><th>Property</th><th>Current lease end</th><th>Requested end</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for request_item in extension_requests %}
+            <tr>
+              <td><div class="table-tenant"><strong>{{ request_item.tenant }}</strong><span>{{ request_item.unit }}</span></div></td>
+              <td>{{ request_item.property }}</td>
+              <td>{{ request_item.currentLeaseEnd }}</td>
+              <td>{{ request_item.requestedEnd }}</td>
+              <td>
+                <span class="status-badge status-badge--{% if request_item.status == 'Approved' %}high-performing{% elif request_item.status == 'Declined' %}vacancy-risk{% elif request_item.status == 'Under Review' %}stable{% else %}needs-attention{% endif %}">
+                  {{ request_item.status }}
+                </span>
+              </td>
+              <td>{{ request_item.createdAt }}</td>
+              <td><a href="{{ request_item.detailUrl }}" class="table-action-link">View</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7">No lease extension requests have been submitted yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
 {% endblock %}
 
 {% block json_data %}

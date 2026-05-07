@@ -12,60 +12,107 @@
         </button>
         <div>
           <span class="eyebrow">Tenant Profile</span>
-          <h2>Review your personal, lease, and contact details.</h2>
+          <h2>Manage your personal and emergency contact details.</h2>
         </div>
       </div>
+      <p class="topbar__tagline">Keep your contact information current while SmartRent keeps your house and lease details read-only.</p>
     </div>
   </header>
 {% endblock %}
 
 {% block content %}
   <section class="content-grid reveal">
-    <article class="panel">
+    <article class="panel tenant-form-panel">
       <div class="panel__header panel__header--stack">
         <div>
           <span class="section-label">Personal Details</span>
           <h3>Your tenant profile</h3>
+          <p class="section-copy">Update the information you want management to rely on when contacting you.</p>
         </div>
       </div>
-      <div class="detail-list">
-        <div class="detail-list__row"><span>Full name</span><strong>{{ tenant.full_name }}</strong></div>
-        <div class="detail-list__row"><span>Email</span><strong>{{ tenant.email }}</strong></div>
-        <div class="detail-list__row"><span>Phone</span><strong>{{ tenant.phone }}</strong></div>
-        <div class="detail-list__row"><span>ID / Passport</span><strong>{{ tenant.id_number|default:"Not provided" }}</strong></div>
-        <div class="detail-list__row"><span>Occupation</span><strong>{{ tenant.occupation|default:"Not provided" }}</strong></div>
-      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ profile_form.full_name.id_for_label }}">Full name</label>
+            {{ profile_form.full_name }}
+            {% if profile_form.full_name.errors %}<div class="field-error">{{ profile_form.full_name.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label>Email address</label>
+            <div class="derived-pricing-card">
+              <strong class="derived-pricing-card__value">{{ tenant.email }}</strong>
+              <span class="field-help">Your login email is currently managed from the account setup side and is shown here as read-only.</span>
+            </div>
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ profile_form.phone.id_for_label }}">Phone</label>
+            {{ profile_form.phone }}
+            {% if profile_form.phone.errors %}<div class="field-error">{{ profile_form.phone.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ profile_form.id_number.id_for_label }}">ID / Passport</label>
+            {{ profile_form.id_number }}
+            {% if profile_form.id_number.errors %}<div class="field-error">{{ profile_form.id_number.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ profile_form.occupation.id_for_label }}">Occupation</label>
+            {{ profile_form.occupation }}
+            {% if profile_form.occupation.errors %}<div class="field-error">{{ profile_form.occupation.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+
+        <section class="tenant-form-section">
+          <div class="tenant-form__field tenant-form__field--full">
+            <div class="panel__header panel__header--stack" style="padding: 0;">
+              <div>
+                <span class="section-label">Emergency Contact</span>
+                <h3>Backup contact information</h3>
+              </div>
+            </div>
+          </div>
+          <div class="tenant-form__grid">
+            <div class="tenant-form__field">
+              <label for="{{ profile_form.emergency_contact_name.id_for_label }}">Name</label>
+              {{ profile_form.emergency_contact_name }}
+              {% if profile_form.emergency_contact_name.errors %}<div class="field-error">{{ profile_form.emergency_contact_name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="tenant-form__field">
+              <label for="{{ profile_form.emergency_contact_phone.id_for_label }}">Phone</label>
+              {{ profile_form.emergency_contact_phone }}
+              {% if profile_form.emergency_contact_phone.errors %}<div class="field-error">{{ profile_form.emergency_contact_phone.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="tenant-form__field tenant-form__field--full">
+              <label for="{{ profile_form.emergency_contact_relationship.id_for_label }}">Relationship</label>
+              {{ profile_form.emergency_contact_relationship }}
+              {% if profile_form.emergency_contact_relationship.errors %}<div class="field-error">{{ profile_form.emergency_contact_relationship.errors|join:", " }}</div>{% endif %}
+            </div>
+          </div>
+        </section>
+
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Save Profile</button>
+        </div>
+      </form>
     </article>
 
     <article class="panel">
       <div class="panel__header panel__header--stack">
         <div>
-          <span class="section-label">Emergency Contact</span>
-          <h3>Backup contact information</h3>
+          <span class="section-label">Occupancy</span>
+          <h3>Home and lease information</h3>
+          <p class="section-copy">These details are controlled by your landlord or management team.</p>
         </div>
       </div>
       <div class="detail-list">
-        <div class="detail-list__row"><span>Name</span><strong>{{ tenant.emergency_contact_name|default:"Not provided" }}</strong></div>
-        <div class="detail-list__row"><span>Phone</span><strong>{{ tenant.emergency_contact_phone|default:"Not provided" }}</strong></div>
-        <div class="detail-list__row"><span>Relationship</span><strong>{{ tenant.emergency_contact_relationship|default:"Not provided" }}</strong></div>
+        <div class="detail-list__row"><span>Property</span><strong>{{ tenant.property.name }}</strong></div>
+        <div class="detail-list__row"><span>Location</span><strong>{{ tenant.property.location }}</strong></div>
+        <div class="detail-list__row"><span>House</span><strong>{{ tenant.unit_number }}</strong></div>
+        <div class="detail-list__row"><span>Unit type</span><strong>{% if tenant.property_unit and tenant.property_unit.unit_type %}{{ tenant.property_unit.unit_type.unit_type }}{% else %}Not set{% endif %}</strong></div>
+        <div class="detail-list__row"><span>Lease type</span><strong>{{ tenant.lease_type }}</strong></div>
+        <div class="detail-list__row"><span>Lease start</span><strong>{{ tenant.lease_start }}</strong></div>
+        <div class="detail-list__row"><span>Lease end</span><strong>{{ tenant.lease_end|default:"Not applicable" }}</strong></div>
       </div>
     </article>
-  </section>
-
-  <section class="panel reveal">
-    <div class="panel__header panel__header--stack">
-      <div>
-        <span class="section-label">Occupancy</span>
-        <h3>Home and lease information</h3>
-      </div>
-    </div>
-    <div class="detail-list">
-      <div class="detail-list__row"><span>Property</span><strong>{{ tenant.property.name }}</strong></div>
-      <div class="detail-list__row"><span>Location</span><strong>{{ tenant.property.location }}</strong></div>
-      <div class="detail-list__row"><span>House</span><strong>{{ tenant.unit_number }}</strong></div>
-      <div class="detail-list__row"><span>Lease type</span><strong>{{ tenant.lease_type }}</strong></div>
-      <div class="detail-list__row"><span>Lease start</span><strong>{{ tenant.lease_start }}</strong></div>
-      <div class="detail-list__row"><span>Lease end</span><strong>{{ tenant.lease_end|default:"Not applicable" }}</strong></div>
-    </div>
   </section>
 {% endblock %}

@@ -12,31 +12,89 @@
         </button>
         <div>
           <span class="eyebrow">Notifications</span>
-          <h2>Stay updated on account, billing, and property activity.</h2>
+          <h2>Track rent, complaints, lease updates, and account reminders in one inbox.</h2>
         </div>
       </div>
+      <p class="topbar__tagline">This is your running activity stream for billing, property issues, and account-level changes.</p>
     </div>
   </header>
 {% endblock %}
 
 {% block content %}
+  <section class="stats-grid reveal">
+    <article class="metric-card metric-card--accent">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Total notifications</span>
+        <div class="metric-value">{{ tenant_notifications_data.summary.total }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Unread</span>
+        <div class="metric-value">{{ tenant_notifications_data.summary.unread }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">High priority</span>
+        <div class="metric-value">{{ tenant_notifications_data.summary.highPriority }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Read</span>
+        <div class="metric-value">{{ tenant_notifications_data.summary.read }}</div>
+      </div>
+    </article>
+  </section>
+
   <section class="panel reveal">
     <div class="panel__header panel__header--stack">
       <div>
         <span class="section-label">Inbox</span>
         <h3>Your latest tenant notifications</h3>
       </div>
+      <form method="post" action="{% url 'tenant-mark-all-notifications-read' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button type="submit" class="btn btn--secondary">Mark all as read</button>
+      </form>
     </div>
     <div class="stack-list">
-      {% for item in tenant_notifications %}
-        <article class="resource-card">
-          <div class="resource-card__header">
-            <div>
-              <h4>{{ item.title }}</h4>
-              <p>{{ item.copy }}</p>
-            </div>
-            <span class="status-badge status-badge--{{ item.tone }}">{{ item.tone|title }}</span>
+      {% for item in tenant_notifications_data.items %}
+        <article class="alert-item{% if item.isRead %} alert-item--muted{% endif %}">
+          <div class="alert-item__icon alert-item__icon--{% if item.priority == 'High' %}warning{% elif item.priority == 'Medium' %}info{% else %}success{% endif %}">
+            <i class="fa-solid {% if item.category == 'Payments & Bills' %}fa-wallet{% elif item.category == 'Lease & Occupancy' %}fa-file-signature{% elif item.category == 'Maintenance & Account' %}fa-screwdriver-wrench{% else %}fa-bell{% endif %}"></i>
           </div>
+          <div class="alert-item__body">
+            <div class="resource-card__header">
+              <div>
+                <h4>{{ item.title }}</h4>
+                <p>{{ item.message }}</p>
+              </div>
+              <span class="status-badge status-badge--{{ item.tone }}">{{ item.priority }}</span>
+            </div>
+            <div class="notification-meta">
+              <span>{{ item.category }}</span>
+              {% if item.propertyName %}<span>{{ item.propertyName }}</span>{% endif %}
+              <span>{{ item.createdAt }}</span>
+            </div>
+            <div class="property-actions">
+              {% if item.linkUrl %}<a href="{{ item.linkUrl }}" class="btn btn--ghost btn--sm">Open</a>{% endif %}
+              {% if not item.isRead %}
+                <form method="post" action="{% url 'tenant-mark-notification-read' item.id %}" class="property-actions__form">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <button type="submit" class="btn btn--secondary btn--sm">Mark as read</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <article class="resource-card">
+          <h4>No notifications yet</h4>
+          <p>When rent, complaints, payments, or lease updates happen on your account, they will show up here.</p>
         </article>
       {% endfor %}
     </div>

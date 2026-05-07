@@ -27,6 +27,19 @@
 {% endblock %}
 
 {% block content %}
+  {% if rent_due_notice %}
+    <section class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Upcoming rent</span>
+          <h3>{{ rent_due_notice.title }}</h3>
+          <p class="section-copy">{{ rent_due_notice.copy }}</p>
+        </div>
+        <a href="{% url 'tenant-receipts' %}" class="btn btn--primary">Make Payment</a>
+      </div>
+    </section>
+  {% endif %}
+
   <section class="hero-panel hero-panel--compact reveal">
     <div class="hero-panel__content">
       <span class="section-label">Your Home Snapshot</span>

@@ -11,17 +11,143 @@
         <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation"><i class="fa-solid fa-bars-staggered"></i></button>
         <div><span class="eyebrow">System Settings</span><h2>Control automations, integrations, access, and reporting rules from one polished admin view.</h2></div>
       </div>
-      <p class="topbar__tagline">Tune the operating system behind SmartRent without sacrificing clarity or design quality.</p>
+      <p class="topbar__tagline">Tune the operating system behind SmartRent with saved business, reminder, and reporting preferences.</p>
     </div>
   </header>
 {% endblock %}
 
 {% block content %}
   <section class="stats-grid reveal">
-    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-plug"></i></div><div class="metric-card__content"><span class="metric-card__label">Integrations</span><strong class="metric-value" data-value="5" data-format="number">0</strong><p>Connected tools feeding payments, reporting, reminders, and vendor coordination.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+1</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-gears"></i></div><div class="metric-card__content"><span class="metric-card__label">Active Automations</span><strong class="metric-value" data-value="6" data-format="number">0</strong><p>Core reminder, reporting, and escalation workflows are active and healthy.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>Stable</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-user-shield"></i></div><div class="metric-card__content"><span class="metric-card__label">Permission Roles</span><strong class="metric-value" data-value="4" data-format="number">0</strong><p>Access is organized by clear role-based permissions across portfolio teams.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>Controlled</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-file-lines"></i></div><div class="metric-card__content"><span class="metric-card__label">Scheduled Reports</span><strong class="metric-value" data-value="3" data-format="number">0</strong><p>Owner digests and analytics exports are configured for consistent delivery.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>On time</span></article>
+    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-plug"></i></div><div class="metric-card__content"><span class="metric-card__label">Integrations</span><strong class="metric-value" data-value="{{ landlord_settings_data.metrics.integrations }}" data-format="number">0</strong><p>Live system and delivery rails currently represented in this workspace.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-gears"></i></div><div class="metric-card__content"><span class="metric-card__label">Active Automations</span><strong class="metric-value" data-value="{{ landlord_settings_data.metrics.active_automations }}" data-format="number">0</strong><p>Saved automation rules that are currently enabled for this landlord account.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-user-shield"></i></div><div class="metric-card__content"><span class="metric-card__label">Permission Roles</span><strong class="metric-value" data-value="{{ landlord_settings_data.metrics.permission_roles }}" data-format="number">0</strong><p>Live account-role groupings currently represented in the platform.</p></div></article>
+    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-file-lines"></i></div><div class="metric-card__content"><span class="metric-card__label">Scheduled Reports</span><strong class="metric-value" data-value="{{ landlord_settings_data.metrics.scheduled_reports }}" data-format="number">0</strong><p>Saved report cadence currently enabled for this landlord account.</p></div></article>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal tenant-form-panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Business Profile</span>
+          <h3>Saved contact and organization details</h3>
+          <p class="section-copy">Use these details as the management identity behind SmartRent notices and reports.</p>
+        </div>
+      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="profile">
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ profile_form.business_name.id_for_label }}">Business name</label>
+            {{ profile_form.business_name }}
+            {% if profile_form.business_name.errors %}<div class="field-error">{{ profile_form.business_name.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ profile_form.support_email.id_for_label }}">Support email</label>
+            {{ profile_form.support_email }}
+            {% if profile_form.support_email.errors %}<div class="field-error">{{ profile_form.support_email.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ profile_form.support_phone.id_for_label }}">Support phone</label>
+            {{ profile_form.support_phone }}
+            {% if profile_form.support_phone.errors %}<div class="field-error">{{ profile_form.support_phone.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Save Business Profile</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel reveal tenant-form-panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Automation Controls</span>
+          <h3>Saved reminder and reporting rules</h3>
+          <p class="section-copy">These settings now persist and drive the operating defaults behind your landlord workspace.</p>
+        </div>
+      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="automation">
+
+        <section class="tenant-form-section">
+          <div class="tenant-form__field tenant-form__field--toggle">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Owner digest emails</span>
+                <p class="toggle-description">Keep management digest delivery active for this portfolio.</p>
+              </div>
+              <label class="toggle-switch" aria-label="Enable owner digest emails">
+                {{ automation_form.owner_digest_enabled }}
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="tenant-form__field tenant-form__field--toggle">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Weekly reporting</span>
+                <p class="toggle-description">Turn scheduled weekly management reporting on or off.</p>
+              </div>
+              <label class="toggle-switch" aria-label="Enable weekly reporting">
+                {{ automation_form.weekly_report_enabled }}
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="tenant-form__field tenant-form__field--toggle">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Maintenance escalation</span>
+                <p class="toggle-description">Escalate unresolved maintenance issues using the saved SLA window below.</p>
+              </div>
+              <label class="toggle-switch" aria-label="Enable maintenance escalation">
+                {{ automation_form.maintenance_escalation_enabled }}
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="tenant-form__field tenant-form__field--toggle">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Autopay nudges</span>
+                <p class="toggle-description">Prompt manual rent tenants to switch to autopay.</p>
+              </div>
+              <label class="toggle-switch" aria-label="Enable autopay nudges">
+                {{ automation_form.autopay_nudges_enabled }}
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="tenant-form__grid">
+            <div class="tenant-form__field">
+              <label for="{{ automation_form.rent_reminder_days.id_for_label }}">Rent reminder lead days</label>
+              {{ automation_form.rent_reminder_days }}
+              {% if automation_form.rent_reminder_days.errors %}<div class="field-error">{{ automation_form.rent_reminder_days.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="tenant-form__field">
+              <label for="{{ automation_form.overdue_follow_up_days.id_for_label }}">Overdue follow-up days</label>
+              {{ automation_form.overdue_follow_up_days }}
+              {% if automation_form.overdue_follow_up_days.errors %}<div class="field-error">{{ automation_form.overdue_follow_up_days.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="tenant-form__field">
+              <label for="{{ automation_form.maintenance_escalation_hours.id_for_label }}">Maintenance escalation hours</label>
+              {{ automation_form.maintenance_escalation_hours }}
+              {% if automation_form.maintenance_escalation_hours.errors %}<div class="field-error">{{ automation_form.maintenance_escalation_hours.errors|join:", " }}</div>{% endif %}
+            </div>
+          </div>
+        </section>
+
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Save Automation Settings</button>
+        </div>
+      </form>
+    </article>
   </section>
 
   <section class="settings-grid reveal" id="settingsGrid"></section>
@@ -30,4 +156,8 @@
     <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Integrations</span><h3>Connected systems and health</h3></div></div><div class="integration-list" id="integrationList"></div></article>
     <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Access control</span><h3>Role-based permissions</h3></div></div><div class="access-list" id="accessList"></div></article>
   </section>
+{% endblock %}
+
+{% block json_data %}
+  {{ landlord_settings_data|json_script:"landlord-settings-data" }}
 {% endblock %}

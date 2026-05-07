@@ -184,7 +184,7 @@ const SmartRentMain = (() => {
     });
   }
 
-  function renderRentChart(canvasId) {
+  function renderRentChart(canvasId, chartData = rentTrend) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || typeof Chart === "undefined") return;
     const colors = applyChartThemeDefaults();
@@ -195,10 +195,10 @@ const SmartRentMain = (() => {
     new Chart(canvas, {
       type: "line",
       data: {
-        labels: rentTrend.labels,
+        labels: chartData.labels,
         datasets: [
-          { label: "Expected rent", data: rentTrend.expected, borderColor: "rgba(255, 178, 77, 0.95)", borderDash: [6, 6], borderWidth: 2, fill: false, tension: 0.38, pointRadius: 0 },
-          { label: "Collected rent", data: rentTrend.collected, borderColor: "#2f74ff", backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.38, pointRadius: 4 }
+          { label: "Expected rent", data: chartData.expected, borderColor: "rgba(255, 178, 77, 0.95)", borderDash: [6, 6], borderWidth: 2, fill: false, tension: 0.38, pointRadius: 0 },
+          { label: "Collected rent", data: chartData.collected, borderColor: "#2f74ff", backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.38, pointRadius: 4 }
         ]
       },
       options: {
@@ -248,12 +248,14 @@ const SmartRentMain = (() => {
 
   function initOverviewPage() {
     if (!document.body.dataset.page || document.body.dataset.page !== "overview") return;
-    const occupancy = [
+    const overviewNode = document.getElementById("overview-dashboard-data");
+    const overviewData = overviewNode ? JSON.parse(overviewNode.textContent) : null;
+    const occupancy = overviewData?.occupancyBreakdown || [
       { label: "Occupied", value: 152, color: "#2f74ff" },
       { label: "Vacant", value: 22, color: "#ffb24d" },
       { label: "Reserved", value: 0, color: "#1bc6a6" }
     ];
-    renderRentChart("rentChart");
+    renderRentChart("rentChart", overviewData?.rentChart || rentTrend);
     renderDoughnut("occupancyChart", occupancy, "72%");
     renderLegend("occupancyLegend", occupancy, (item) => item.value);
   }
@@ -494,12 +496,31 @@ const SmartRentMain = (() => {
     const paymentsData = JSON.parse(paymentsNode.textContent);
     const rows = paymentsData.payments || [];
     const search = document.getElementById("paymentSearch");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+    function paymentStatusClass(status) {
+      if (status === "Confirmed") return "paid";
+      if (status === "Pending") return "pending";
+      return "vacancy-risk";
+    }
     function renderRows() {
       const query = (search?.value || "").trim().toLowerCase();
       paymentActivity.innerHTML = rows.filter((row) =>
         [row.tenant, row.property, row.unit, row.status, row.category, row.method].join(" ").toLowerCase().includes(query)
       ).map((row) => `
-        <tr><td><div class="table-tenant"><strong>${row.tenant}</strong><span>${row.property}</span></div></td><td>${row.unit}</td><td>${formatCurrency(row.amount)}</td><td><small>${row.date}</small></td><td><span class="table-status table-status--${row.status.toLowerCase()}">${row.status}</span></td></tr>
+        <tr>
+          <td><div class="table-tenant"><strong>${row.tenant}</strong><span>${row.property}</span></div></td>
+          <td>${row.unit}</td>
+          <td>${formatCurrency(row.amount)}</td>
+          <td>${row.method}</td>
+          <td><small>${row.date}</small></td>
+          <td><span class="table-status table-status--${paymentStatusClass(row.status)}">${row.status}</span></td>
+          <td>
+            <div class="property-actions property-actions--compact">
+              <a href="${row.detailUrl}" class="btn btn--ghost btn--sm">View</a>
+              ${row.approveUrl ? `<form method="post" action="${row.approveUrl}" class="property-actions__form"><input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}"><button type="submit" class="btn btn--secondary btn--sm">Approve</button></form>` : ""}
+            </div>
+          </td>
+        </tr>
       `).join("");
     }
     search?.addEventListener("input", renderRows);
@@ -509,44 +530,57 @@ const SmartRentMain = (() => {
     renderLegend("paymentMethodLegend", paymentsData.payment_methods, (item) => item.value);
   }
 
-  function initMaintenancePage() {
-    const ticketList = document.getElementById("ticketList");
-    const maintenanceNode = document.getElementById("maintenance-dashboard-data");
-    if (!ticketList || !maintenanceNode) return;
-    const maintenanceData = JSON.parse(maintenanceNode.textContent);
-    ticketList.innerHTML = maintenanceData.complaints.map((ticket) => `
-      <article class="ticket-card"><div class="ticket-card__header"><div><h4>${ticket.title}</h4><p>${ticket.property} • ${ticket.unit}</p></div><span class="priority-badge priority-badge--${ticket.status.toLowerCase().replace(/\s+/g, "-")}">${ticket.status}</span></div><div class="ticket-card__meta"><span><i class="fa-solid fa-user"></i> ${ticket.tenant}</span><span><i class="fa-regular fa-clock"></i> ${ticket.created_at}</span></div></article>
-    `).join("");
-    const vendorList = document.getElementById("vendorList");
-    if (vendorList) {
-      vendorList.innerHTML = maintenanceData.complaints.map((item) => `
-        <article class="resource-card"><div class="resource-card__header"><div><h4>${item.title}</h4><p>${item.category} • ${item.tenant}</p></div><span class="status-badge status-badge--stable">${item.status}</span></div><div class="resource-card__footer"><div><span class="section-copy">Property</span><div class="resource-card__value">${item.property}</div></div><div class="meta-tag">${item.unit}</div></div></article>
-      `).join("");
-    }
-    renderBarChart("maintenanceChart", maintenanceData.categories.labels, maintenanceData.categories.values);
-  }
-
-  function initTenantComplaintsPage() {
-    const target = document.getElementById("tenantComplaintsTable");
-    const complaintsNode = document.getElementById("tenant-complaints-data");
-    if (!target || !complaintsNode) return;
-    const complaints = JSON.parse(complaintsNode.textContent);
+  function initBillsPage() {
+    const billsNode = document.getElementById("bills-dashboard-data");
+    const tableTarget = document.getElementById("billsTable");
+    if (!billsNode || !tableTarget) return;
+    const billsData = JSON.parse(billsNode.textContent);
+    const rows = billsData.accumulated_bills || [];
+    const search = document.getElementById("billSearch");
+    const propertyFilter = document.getElementById("billPropertyFilter");
+    const statusFilter = document.getElementById("billStatusFilter");
+    const categoryFilter = document.getElementById("billCategoryFilter");
     let currentPage = 1;
-    const perPage = 5;
+    const perPage = 8;
+
+    function filterRows() {
+      const query = (search?.value || "").trim().toLowerCase();
+      const propertyValue = propertyFilter?.value || "";
+      const statusValue = statusFilter?.value || "";
+      const categoryValue = categoryFilter?.value || "";
+      return rows.filter((row) => {
+        const haystack = [
+          row.property,
+          row.tenant,
+          row.status,
+          ...(row.categories || []),
+        ].join(" ").toLowerCase();
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesProperty = !propertyValue || row.property === propertyValue;
+        const matchesStatus = !statusValue || row.status === statusValue;
+        const matchesCategory = !categoryValue || (row.categories || []).includes(categoryValue);
+        return matchesQuery && matchesProperty && matchesStatus && matchesCategory;
+      });
+    }
 
     function renderRows(items) {
       return `
         <div class="property-table-wrap">
           <table class="property-table">
-            <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Date</th><th>Description</th></tr></thead>
+            <thead>
+              <tr><th>Property</th><th>Tenant</th><th>Categories</th><th>Original Amount</th><th>Paid So Far</th><th>Balance</th><th>Status</th><th>Actions</th></tr>
+            </thead>
             <tbody>
-              ${items.map((item) => `
+              ${items.map((row) => `
                 <tr>
-                  <td>${item.title}</td>
-                  <td>${item.category}</td>
-                  <td><span class="status-badge status-badge--stable">${item.status}</span></td>
-                  <td>${item.createdAt}</td>
-                  <td>${item.description}</td>
+                  <td>${row.property}</td>
+                  <td>${row.tenant}</td>
+                  <td>${(row.categories || []).join(", ") || "None"}</td>
+                  <td>${formatCurrency(row.original_amount)}</td>
+                  <td>${formatCurrency(row.amount_paid)}</td>
+                  <td>${formatCurrency(row.amount_due)}</td>
+                  <td><span class="status-badge status-badge--${row.status_class}">${row.status}</span></td>
+                  <td><a class="table-action-link" href="${row.detail_url}">View</a></td>
                 </tr>
               `).join("")}
             </tbody>
@@ -555,16 +589,149 @@ const SmartRentMain = (() => {
       `;
     }
 
-    function renderComplaints() {
-      const totalPages = Math.max(1, Math.ceil(complaints.length / perPage));
+    function renderBills() {
+      const filtered = filterRows();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
       currentPage = Math.min(currentPage, totalPages);
-      const pageItems = complaints.slice((currentPage - 1) * perPage, currentPage * perPage);
-      target.innerHTML = pageItems.length ? renderRows(pageItems) : `<article class="resource-card"><h4>No complaints logged yet</h4><p>Your maintenance and repair complaints will appear here after you submit them.</p></article>`;
+      const pageItems = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+      tableTarget.innerHTML = pageItems.length
+        ? renderRows(pageItems)
+        : `<article class="resource-card"><h4>No matching bills</h4><p>Try adjusting the search or filters to find the bill set you want.</p></article>`;
+      renderPagination("billsPagination", currentPage, totalPages, (page) => {
+        currentPage = page;
+        renderBills();
+      });
+    }
+
+    [search, propertyFilter, statusFilter, categoryFilter].forEach((control) => {
+      control?.addEventListener(control === search ? "input" : "change", () => {
+        currentPage = 1;
+        renderBills();
+      });
+    });
+
+    renderBills();
+  }
+
+  function initMaintenancePage() {
+    const complaintTable = document.getElementById("maintenanceComplaintTable");
+    const maintenanceNode = document.getElementById("maintenance-dashboard-data");
+    if (!complaintTable || !maintenanceNode) return;
+    const maintenanceData = JSON.parse(maintenanceNode.textContent);
+    function maintenanceStatusClass(status) {
+      if (status === "Resolved") return "high-performing";
+      if (status === "In Progress") return "stable";
+      if (status === "Rejected") return "vacancy-risk";
+      return "needs-attention";
+    }
+    complaintTable.innerHTML = maintenanceData.complaints.length ? `
+      <div class="property-table-wrap">
+        <table class="property-table">
+          <thead><tr><th>Title</th><th>Tenant</th><th>Property</th><th>Category</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${maintenanceData.complaints.map((item) => `
+              <tr>
+                <td>${item.title}</td>
+                <td><div class="table-tenant"><strong>${item.tenant}</strong><span>${item.unit}</span></div></td>
+                <td>${item.property}</td>
+                <td>${item.category}</td>
+                <td><span class="status-badge status-badge--${maintenanceStatusClass(item.status)}">${item.status}</span></td>
+                <td>${item.created_at}</td>
+                <td><a href="${item.detailUrl}" class="btn btn--ghost btn--sm">View</a></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : `<article class="resource-card"><h4>No complaints yet</h4><p>Tenant-submitted complaints will appear here as soon as they are logged.</p></article>`;
+    renderBarChart("maintenanceChart", maintenanceData.categories.labels, maintenanceData.categories.values);
+  }
+
+  function initTenantComplaintsPage() {
+    const target = document.getElementById("tenantComplaintsTable");
+    const complaintsNode = document.getElementById("tenant-complaints-data");
+    if (!target || !complaintsNode) return;
+    const complaintsData = JSON.parse(complaintsNode.textContent);
+    const complaints = complaintsData.items || [];
+    const search = document.getElementById("tenantComplaintSearch");
+    const statusFilter = document.getElementById("tenantComplaintStatusFilter");
+    const categoryFilter = document.getElementById("tenantComplaintCategoryFilter");
+    let currentPage = 1;
+    const perPage = 5;
+
+    const statuses = [...new Set(complaints.map((item) => item.status).filter(Boolean))];
+    const categories = [...new Set(complaints.map((item) => item.category).filter(Boolean))];
+    if (statusFilter) {
+      statusFilter.innerHTML = `<option value="">All statuses</option>${statuses.map((item) => `<option value="${item}">${item}</option>`).join("")}`;
+    }
+    if (categoryFilter) {
+      categoryFilter.innerHTML = `<option value="">All categories</option>${categories.map((item) => `<option value="${item}">${item}</option>`).join("")}`;
+    }
+
+    function renderRows(items) {
+      function complaintStatusClass(status) {
+        if (status === "Resolved") return "high-performing";
+        if (status === "In Progress") return "stable";
+        if (status === "Rejected") return "vacancy-risk";
+        return "needs-attention";
+      }
+      return `
+        <div class="property-table-wrap">
+          <table class="property-table property-table--compact">
+            <thead><tr><th>Complaint</th><th>Category</th><th>Status</th><th>Date</th><th>Latest Update</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${items.map((item) => `
+                <tr>
+                  <td>
+                    <div class="table-tenant">
+                      <strong>${item.title}</strong>
+                      <span>${item.description}</span>
+                    </div>
+                  </td>
+                  <td>${item.category}</td>
+                  <td><span class="status-badge status-badge--${complaintStatusClass(item.status)}">${item.status}</span></td>
+                  <td>${item.createdAt}</td>
+                  <td>${item.landlordNotes || "No landlord note yet."}</td>
+                  <td><a href="${item.detailUrl}" class="btn btn--ghost btn--sm">View</a></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function getFilteredComplaints() {
+      const query = (search?.value || "").trim().toLowerCase();
+      const statusValue = statusFilter?.value || "";
+      const categoryValue = categoryFilter?.value || "";
+      return complaints.filter((item) => {
+        const haystack = [item.title, item.category, item.status, item.description, item.landlordNotes || ""].join(" ").toLowerCase();
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesStatus = !statusValue || item.status === statusValue;
+        const matchesCategory = !categoryValue || item.category === categoryValue;
+        return matchesQuery && matchesStatus && matchesCategory;
+      });
+    }
+
+    function renderComplaints() {
+      const filtered = getFilteredComplaints();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+      currentPage = Math.min(currentPage, totalPages);
+      const pageItems = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+      target.innerHTML = pageItems.length ? renderRows(pageItems) : `<article class="resource-card"><h4>No matching complaints</h4><p>Try adjusting the search or filters to find a complaint.</p></article>`;
       renderPagination("tenantComplaintsPagination", currentPage, totalPages, (page) => {
         currentPage = page;
         renderComplaints();
       });
     }
+
+    [search, statusFilter, categoryFilter].forEach((control) => {
+      control?.addEventListener(control === search ? "input" : "change", () => {
+        currentPage = 1;
+        renderComplaints();
+      });
+    });
 
     renderComplaints();
   }
@@ -584,25 +751,54 @@ const SmartRentMain = (() => {
     if (!receiptsNode || !tableTarget) return;
     const receiptsData = JSON.parse(receiptsNode.textContent);
     const transactions = receiptsData.transactions || [];
+    const search = document.getElementById("tenantReceiptSearch");
+    const typeFilter = document.getElementById("tenantReceiptTypeFilter");
+    const categoryFilter = document.getElementById("tenantReceiptCategoryFilter");
+    const statusFilter = document.getElementById("tenantReceiptStatusFilter");
     let currentPage = 1;
     const perPage = 6;
+
+    const categories = [...new Set(transactions.map((item) => item.category || item.scope).filter(Boolean))];
+    if (categoryFilter) {
+      categoryFilter.innerHTML = `<option value="">All categories</option>${categories.map((item) => `<option value="${item}">${item}</option>`).join("")}`;
+    }
 
     function renderRows(items) {
       return `
         <div class="property-table-wrap">
           <table class="property-table">
-            <thead><tr><th>Type</th><th>Amount Due</th><th>Amount Paid</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Entry</th><th>Type</th><th>Status</th><th>Amount</th><th>Balance / Method</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody>
               ${items.map((item) => {
                 const isBill = item.type === 'Bill';
-                const statusClass = isBill ? (item.amount === 0 ? 'high-performing' : 'needs-attention') : 'high-performing';
-                const statusText = isBill ? (item.amount === 0 ? 'Paid' : 'Unpaid') : 'Paid';
-                const typeDisplay = isBill ? `<span>Bill</span><small style="color: var(--text-soft); font-size: 0.75em;">${item.category || ''}</small>` : 'Payment';
+                const statusClass = isBill
+                  ? (item.status === 'Paid' ? 'high-performing' : item.status === 'Partially Paid' ? 'stable' : 'needs-attention')
+                  : (item.status === 'Pending' ? 'needs-attention' : 'high-performing');
+                const statusText = item.statusLabel || (isBill ? 'Unpaid' : 'Confirmed');
+                const entrySecondary = isBill ? (item.category || 'Bill') : `${item.scope || 'Payment'} · ${item.method || 'Method not set'}`;
+                const balanceDisplay = isBill
+                  ? `${formatCurrency(item.balance || 0)} left`
+                  : item.method || '-';
+                const amountDisplay = isBill
+                  ? `${formatCurrency(item.originalAmount)}`
+                  : `${formatCurrency(item.amountPaid || item.originalAmount || 0)}`;
                 return `
                 <tr>
-                  <td><span class="status-badge status-badge--${statusClass}">${statusText}</span><br><span style="font-size: 0.85em;">${typeDisplay}</span></td>
-                  <td>${formatCurrency(item.originalAmount)}</td>
-                  <td>${formatCurrency(item.amountPaid || 0)}</td>
+                  <td>
+                    <div class="table-tenant">
+                      <strong>${item.title || item.scope || item.category || item.type}</strong>
+                      <span>${entrySecondary}</span>
+                    </div>
+                  </td>
+                  <td>${item.type}</td>
+                  <td><span class="status-badge status-badge--${statusClass}">${statusText}</span></td>
+                  <td>
+                    <div class="table-tenant">
+                      <strong>${amountDisplay}</strong>
+                      <span>${isBill ? `Paid so far ${formatCurrency(item.amountPaid || 0)}` : 'Captured payment'}</span>
+                    </div>
+                  </td>
+                  <td>${balanceDisplay}</td>
                   <td>${item.date}</td>
                   <td><a href="${item.detailUrl}" class="btn btn--ghost btn--sm">View</a></td>
                 </tr>
@@ -613,43 +809,179 @@ const SmartRentMain = (() => {
       `;
     }
 
+    function getFilteredTransactions() {
+      const query = (search?.value || "").trim().toLowerCase();
+      const typeValue = typeFilter?.value || "";
+      const categoryValue = categoryFilter?.value || "";
+      const statusValue = statusFilter?.value || "";
+      return transactions.filter((item) => {
+        const haystack = [
+          item.type,
+          item.title || "",
+          item.category || "",
+          item.descriptor || "",
+          item.method || "",
+          item.status || "",
+          item.scope || "",
+          item.date,
+        ].join(" ").toLowerCase();
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesType = !typeValue || item.type === typeValue;
+        const matchesCategory = !categoryValue || (item.category || item.scope) === categoryValue;
+        const effectiveStatus = item.status || (item.type === "Bill" ? "Unpaid" : "Confirmed");
+        const matchesStatus = !statusValue || effectiveStatus === statusValue;
+        return matchesQuery && matchesType && matchesCategory && matchesStatus;
+      });
+    }
+
     function renderTransactions() {
-      const totalPages = Math.max(1, Math.ceil(transactions.length / perPage));
+      const filtered = getFilteredTransactions();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
       currentPage = Math.min(currentPage, totalPages);
-      const pageItems = transactions.slice((currentPage - 1) * perPage, currentPage * perPage);
-      tableTarget.innerHTML = pageItems.length ? renderRows(pageItems) : `<article class="resource-card"><h4>No transactions yet</h4><p>Bills and payments will appear here once they are recorded.</p></article>`;
+      const pageItems = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+      tableTarget.innerHTML = pageItems.length ? renderRows(pageItems) : `<article class="resource-card"><h4>No matching transactions</h4><p>Try adjusting the search or filters to find a bill or payment.</p></article>`;
       renderPagination("tenantReceiptsPagination", currentPage, totalPages, (page) => {
         currentPage = page;
         renderTransactions();
       });
     }
 
+    [search, typeFilter, categoryFilter, statusFilter].forEach((control) => {
+      control?.addEventListener(control === search ? "input" : "change", () => {
+        currentPage = 1;
+        renderTransactions();
+      });
+    });
+
     renderTransactions();
   }
 
+  function initTenantPaymentForm() {
+    const form = document.getElementById("tenantPaymentForm");
+    if (!form) return;
+    const targetSelect = form.querySelector('[name="payment_target"]');
+    const billField = document.getElementById("tenantBillField");
+    const billSelect = form.querySelector('[name="bill"]');
+    const addBillButton = document.getElementById("addBillToPaymentList");
+    const selectedBillIdsInput = form.querySelector('[name="selected_bill_ids"]');
+    const paymentList = document.getElementById("tenantPaymentList");
+    const openBillsNode = document.getElementById("tenant-open-bills-data");
+    const rentPeriodsField = document.getElementById("tenantRentPeriodsField");
+    const methodSelect = form.querySelector('[name="method"]');
+    const messageTitle = document.getElementById("tenantPaymentMessageTitle");
+    const messageCopy = document.getElementById("tenantPaymentMessageCopy");
+    const submitButton = document.getElementById("tenantPaymentSubmit");
+    const openBills = openBillsNode ? JSON.parse(openBillsNode.textContent) : [];
+    let selectedBillIds = (selectedBillIdsInput?.value || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    function renderSelectedBills() {
+      if (!paymentList || !selectedBillIdsInput) return;
+      selectedBillIdsInput.value = selectedBillIds.join(",");
+      if (!selectedBillIds.length) {
+        paymentList.innerHTML = `<article class="resource-card"><h4>No bills added yet</h4><p>Select a bill above and use Add Bill to build your payment list.</p></article>`;
+        return;
+      }
+      const selectedBills = selectedBillIds
+        .map((id) => openBills.find((item) => String(item.id) === String(id)))
+        .filter(Boolean);
+      const total = selectedBills.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      paymentList.innerHTML = `
+        <div class="stack-list">
+          ${selectedBills.map((item) => `
+            <article class="resource-card">
+              <div class="resource-card__header">
+                <div>
+                  <h4>${item.title}</h4>
+                  <p>${item.category} • Due ${item.dueDate}</p>
+                </div>
+                <button type="button" class="btn btn--ghost btn--sm remove-selected-bill" data-bill-id="${item.id}">Remove</button>
+              </div>
+              <div class="resource-card__value">${formatCurrency(item.amount)}</div>
+            </article>
+          `).join("")}
+          <article class="resource-card">
+            <div class="resource-card__header">
+              <div>
+                <h4>Payment total</h4>
+                <p>Combined amount from the selected bills.</p>
+              </div>
+              <div class="resource-card__value">${formatCurrency(total)}</div>
+            </div>
+          </article>
+        </div>
+      `;
+      paymentList.querySelectorAll(".remove-selected-bill").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedBillIds = selectedBillIds.filter((id) => id !== button.dataset.billId);
+          renderSelectedBills();
+        });
+      });
+    }
+
+    function updateVisibility() {
+      const target = targetSelect?.value;
+      if (billField) billField.style.display = target === "Bill" ? "" : "none";
+      if (rentPeriodsField) rentPeriodsField.style.display = target === "Rent" ? "" : "none";
+      if (addBillButton) addBillButton.style.display = target === "Bill" ? "" : "none";
+      if (target !== "Bill") {
+        selectedBillIds = [];
+        renderSelectedBills();
+      }
+    }
+
+    function updateMethodMessage() {
+      const method = methodSelect?.value;
+      if (!messageTitle || !messageCopy || !submitButton) return;
+      if (method === "M-Pesa") {
+        messageTitle.textContent = "M-Pesa prompt will be simulated";
+        messageCopy.textContent = "Check your phone for the M-Pesa prompt, then press the confirmation button. In this test flow SmartRent confirms it immediately.";
+        submitButton.textContent = "Confirm M-Pesa Payment";
+      } else if (method === "Card") {
+        messageTitle.textContent = "Saved bank or card details will be used";
+        messageCopy.textContent = "SmartRent will use the saved details from Settings. If nothing is saved yet, the form will ask you to set them up first.";
+        submitButton.textContent = "Confirm Card Payment";
+      } else {
+        messageTitle.textContent = "Cash payments wait for approval";
+        messageCopy.textContent = "Cash payments stay pending until a landlord approves them from the Payments page.";
+        submitButton.textContent = "Submit Cash Payment";
+      }
+    }
+
+    targetSelect?.addEventListener("change", updateVisibility);
+    methodSelect?.addEventListener("change", updateMethodMessage);
+    addBillButton?.addEventListener("click", () => {
+      const selectedId = billSelect?.value;
+      if (!selectedId) return;
+      if (!selectedBillIds.includes(selectedId)) {
+        selectedBillIds.push(selectedId);
+      }
+      renderSelectedBills();
+    });
+    renderSelectedBills();
+    updateVisibility();
+    updateMethodMessage();
+  }
+
   function initAnalyticsPage() {
-    if (!document.getElementById("benchmarkList")) return;
-    const occupancy = [
-      { label: "Occupied", value: 152, color: "#2f74ff" },
-      { label: "Vacant", value: 22, color: "#ffb24d" },
-      { label: "Reserved", value: 0, color: "#1bc6a6" }
-    ];
-    const benchmarks = [
-      { title: "Best collection lift", detail: "Autopay adoption is driving steadier early-month receipts.", value: "+12%" },
-      { title: "Vacancy focus", detail: "Skyline Suites and Bluehaven remain the biggest leasing pressure points.", value: "2 sites" },
-      { title: "Service drag", detail: "Plumbing continues to be the heaviest maintenance category this month.", value: "5 tickets" }
-    ];
+    const analyticsNode = document.getElementById("analytics-dashboard-data");
+    if (!analyticsNode || !document.getElementById("benchmarkList")) return;
+    const analyticsData = JSON.parse(analyticsNode.textContent);
+    const occupancy = analyticsData.occupancyBreakdown || [];
+    const benchmarks = analyticsData.benchmarkCards || [];
     document.getElementById("benchmarkList").innerHTML = benchmarks.map((item) => `
       <article class="resource-card"><div><h4>${item.title}</h4><p>${item.detail}</p></div><div class="resource-card__value">${item.value}</div></article>
     `).join("");
     const title = document.getElementById("insightTitle");
     const copy = document.getElementById("insightCopy");
     if (title && copy) {
-      title.textContent = "Skyline Suites needs proactive leasing support";
-      copy.textContent = "Skyline Suites is sitting at 72% occupancy while overdue pressure is already concentrated in two properties. A short renewal and broker outreach sprint is the clearest near-term move to protect next month’s cash flow.";
+      title.textContent = analyticsData.insight?.title || "Portfolio recommendation";
+      copy.textContent = analyticsData.insight?.copy || "";
     }
-    renderRentChart("rentChart");
-    renderBarChart("maintenanceChart", maintenanceCategories.labels, maintenanceCategories.values);
+    renderRentChart("rentChart", analyticsData.revenueChart || rentTrend);
+    renderBarChart("maintenanceChart", analyticsData.maintenanceCategories?.labels || maintenanceCategories.labels, analyticsData.maintenanceCategories?.values || maintenanceCategories.values);
     renderDoughnut("occupancyChart", occupancy, "72%");
     renderLegend("occupancyLegend", occupancy, (item) => item.value);
   }
@@ -671,26 +1003,22 @@ const SmartRentMain = (() => {
   }
 
   function initSettingsPage() {
+    const settingsNode = document.getElementById("landlord-settings-data");
     const settingsGrid = document.getElementById("settingsGrid");
-    if (!settingsGrid) return;
-    settingsGrid.innerHTML = settingsCards.map((setting) => `
-      <article class="resource-card settings-card"><div class="toggle-row"><div><h4>${setting.title}</h4><p>${setting.description}</p></div><button class="toggle-btn${setting.enabled ? " is-active" : ""}" aria-pressed="${setting.enabled}" aria-label="Toggle ${setting.title}"><span></span></button></div></article>
+    if (!settingsGrid || !settingsNode) return;
+    const settingsData = JSON.parse(settingsNode.textContent);
+    const cards = settingsData.settingsCards || [];
+    settingsGrid.innerHTML = cards.map((setting) => `
+      <article class="resource-card settings-card"><div class="toggle-row"><div><h4>${setting.title}</h4><p>${setting.description}</p></div><span class="status-badge status-badge--${setting.enabled ? "high-performing" : "needs-attention"}">${setting.enabled ? "Enabled" : "Disabled"}</span></div></article>
     `).join("");
     const integrationList = document.getElementById("integrationList");
-    if (integrationList) integrationList.innerHTML = integrations.map((item) => `
+    if (integrationList) integrationList.innerHTML = (settingsData.integrations || []).map((item) => `
       <article class="resource-card"><div class="resource-card__header"><div><h4>${item.name}</h4><p>${item.detail}</p></div><span class="status-badge status-badge--stable">${item.status}</span></div></article>
     `).join("");
     const accessList = document.getElementById("accessList");
-    if (accessList) accessList.innerHTML = accessRoles.map((role) => `
+    if (accessList) accessList.innerHTML = (settingsData.accessRoles || []).map((role) => `
       <article class="resource-card"><div class="resource-card__header"><div><h4>${role.role}</h4><p>${role.permission}</p></div><span class="status-badge status-badge--stable">${role.members} members</span></div></article>
     `).join("");
-    document.querySelectorAll(".toggle-btn").forEach((button) => {
-      button.addEventListener("click", () => {
-        const next = !button.classList.contains("is-active");
-        button.classList.toggle("is-active", next);
-        button.setAttribute("aria-pressed", String(next));
-      });
-    });
   }
 
   function initPropertyForm() {
@@ -826,7 +1154,9 @@ const SmartRentMain = (() => {
     initTenantComplaintsPage();
     initTenantAnalyticsPage();
     initTenantReceiptsPage();
+    initTenantPaymentForm();
     initPaymentsPage();
+    initBillsPage();
     initMaintenancePage();
     initAnalyticsPage();
     initNotificationsPage();

@@ -12,15 +12,86 @@
         </button>
         <div>
           <span class="eyebrow">Tenant Settings</span>
-          <h2>Manage your account security.</h2>
+          <h2>Manage your account security and rent autopay.</h2>
         </div>
       </div>
-      <p class="topbar__tagline">Change your password here. If you are still using the default password from landlord setup, the reminder banner will remain visible until you update it.</p>
+      <p class="topbar__tagline">Update your password, turn rent autopay on or off, and save testing payment details that the system can use when the next rent cycle lands.</p>
     </div>
   </header>
 {% endblock %}
 
 {% block content %}
+  <section class="panel reveal tenant-form-panel">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Rent Autopay</span>
+        <h3>Enable or disable automatic rent collection</h3>
+        <p class="section-copy">Autopay only applies to rent bills. Service charge, water, and other bills remain manual. In this testing phase, SmartRent will attempt the payment without bank verification.</p>
+      </div>
+    </div>
+
+    <form method="post" class="tenant-form">
+      {% csrf_token %}
+      <input type="hidden" name="form_action" value="autopay">
+
+      <section class="tenant-form-section">
+        <div class="tenant-form__field tenant-form__field--toggle">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Autopay status</span>
+              <p class="toggle-description">When enabled, SmartRent will automatically create a payment for rent bills as they become due.</p>
+            </div>
+            <label class="toggle-switch" aria-label="Enable rent autopay">
+              {{ autopay_form.autopay_enabled }}
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          {% if autopay_form.autopay_enabled.errors %}<div class="field-error">{{ autopay_form.autopay_enabled.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ autopay_form.autopay_bank_name.id_for_label }}">Bank name</label>
+            {{ autopay_form.autopay_bank_name }}
+            {% if autopay_form.autopay_bank_name.errors %}<div class="field-error">{{ autopay_form.autopay_bank_name.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ autopay_form.autopay_account_holder.id_for_label }}">Account or card holder</label>
+            {{ autopay_form.autopay_account_holder }}
+            {% if autopay_form.autopay_account_holder.errors %}<div class="field-error">{{ autopay_form.autopay_account_holder.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ autopay_form.autopay_account_number.id_for_label }}">Account number</label>
+            {{ autopay_form.autopay_account_number }}
+            {% if autopay_form.autopay_account_number.errors %}<div class="field-error">{{ autopay_form.autopay_account_number.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ autopay_form.autopay_card_number.id_for_label }}">Card number</label>
+            {{ autopay_form.autopay_card_number }}
+            {% if autopay_form.autopay_card_number.errors %}<div class="field-error">{{ autopay_form.autopay_card_number.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ autopay_form.autopay_card_expiry.id_for_label }}">Card expiry</label>
+            {{ autopay_form.autopay_card_expiry }}
+            {% if autopay_form.autopay_card_expiry.errors %}<div class="field-error">{{ autopay_form.autopay_card_expiry.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label>Testing note</label>
+            <div class="derived-pricing-card">
+              <span class="derived-pricing-card__label">Current mode</span>
+              <strong class="derived-pricing-card__value">Verification bypassed</strong>
+              <span class="field-help">For now, SmartRent accepts these details as-is and will still run the rent autopay flow in test mode.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="tenant-form__actions">
+        <button type="submit" class="btn btn--primary">Save Autopay Settings</button>
+      </div>
+    </form>
+  </section>
+
   <section class="panel reveal tenant-form-panel">
     <div class="panel__header panel__header--stack">
       <div>
@@ -36,6 +107,7 @@
 
     <form method="post" class="tenant-form">
       {% csrf_token %}
+      <input type="hidden" name="form_action" value="password">
       <div class="tenant-form__grid">
         <div class="tenant-form__field tenant-form__field--full">
           <label for="{{ password_form.old_password.id_for_label }}">Current password</label>

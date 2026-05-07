@@ -32,8 +32,75 @@
       <div class="metric-card__content">
         <span class="metric-card__label">Current balance</span>
         <div class="metric-value" data-value="{{ tenant_receipts_data.summary.current_balance }}" data-format="currency">KSh 0</div>
+        <p class="metric-card__copy">Includes prepaid rent waiting for the next due date.</p>
       </div>
     </article>
+  </section>
+
+  <section class="panel reveal tenant-form-panel">
+    <div class="panel__header panel__header--stack">
+      <div>
+        <span class="section-label">Add payment</span>
+        <h3>Pay a bill, prepay rent, or clear everything open</h3>
+        <p class="section-copy">Rent paid early stays in your account as credit and only starts reflecting on the due date. You can pay multiple future rent periods, but never beyond your lease end date.</p>
+      </div>
+    </div>
+    <form method="post" class="tenant-form" id="tenantPaymentForm">
+      {% csrf_token %}
+      <input type="hidden" name="form_action" value="payment">
+      <div class="tenant-form__grid">
+        <div class="tenant-form__field">
+          <label for="{{ tenant_payment_form.payment_target.id_for_label }}">What are you paying?</label>
+          {{ tenant_payment_form.payment_target }}
+          {% if tenant_payment_form.payment_target.errors %}<div class="field-error">{{ tenant_payment_form.payment_target.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="tenant-form__field" id="tenantBillField">
+          <label for="{{ tenant_payment_form.bill.id_for_label }}">Bill</label>
+          <div class="inline-action-row">
+            <div class="inline-action-row__field">
+              {{ tenant_payment_form.bill }}
+            </div>
+            <button type="button" class="btn btn--secondary" id="addBillToPaymentList">Add Bill</button>
+          </div>
+          {{ tenant_payment_form.selected_bill_ids }}
+          <p class="field-help">Add the bills you want to clear together. They will appear in the payment list below.</p>
+          {% if tenant_payment_form.bill.errors %}<div class="field-error">{{ tenant_payment_form.bill.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="tenant-form__field" id="tenantRentPeriodsField">
+          <label for="{{ tenant_payment_form.rent_periods.id_for_label }}">Future rent periods</label>
+          {{ tenant_payment_form.rent_periods }}
+          <p class="field-help">Maximum available right now: {{ max_rent_periods }} period(s).</p>
+          {% if tenant_payment_form.rent_periods.errors %}<div class="field-error">{{ tenant_payment_form.rent_periods.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="tenant-form__field">
+          <label for="{{ tenant_payment_form.method.id_for_label }}">Payment method</label>
+          {{ tenant_payment_form.method }}
+          {% if tenant_payment_form.method.errors %}<div class="field-error">{{ tenant_payment_form.method.errors|join:", " }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="tenant-form__field tenant-form__field--full">
+        <div class="derived-pricing-card" id="tenantPaymentMessage">
+          <span class="derived-pricing-card__label">Payment guidance</span>
+          <strong class="derived-pricing-card__value" id="tenantPaymentMessageTitle">Ready to pay</strong>
+          <span class="field-help" id="tenantPaymentMessageCopy">Choose what you want to pay and SmartRent will guide the next step.</span>
+        </div>
+      </div>
+      <div class="tenant-form__field tenant-form__field--full" id="tenantPaymentListWrap">
+        <div class="panel panel--nested">
+          <div class="panel__header panel__header--stack">
+            <div>
+              <span class="section-label">Selected bills</span>
+              <h3>Payment list</h3>
+              <p class="section-copy">Review the bills you have added before confirming the payment method.</p>
+            </div>
+          </div>
+          <div id="tenantPaymentList"></div>
+        </div>
+      </div>
+      <div class="tenant-form__actions">
+        <button type="submit" class="btn btn--primary" id="tenantPaymentSubmit">Submit Payment</button>
+      </div>
+    </form>
   </section>
 
   <section class="panel reveal">
@@ -42,6 +109,37 @@
         <span class="section-label">Bills & Payments</span>
         <h3>Transaction history</h3>
         <p class="section-copy">This shows all your bills and payments in chronological order.</p>
+      </div>
+      <div class="property-controls">
+        <label class="search-field search-field--compact">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" id="tenantReceiptSearch" placeholder="Search transactions" autocomplete="off">
+        </label>
+        <label class="select-field select-field--view">
+          <span>Type</span>
+          <select id="tenantReceiptTypeFilter">
+            <option value="">All types</option>
+            <option value="Bill">Bills</option>
+            <option value="Payment">Payments</option>
+          </select>
+        </label>
+        <label class="select-field select-field--view">
+          <span>Category</span>
+          <select id="tenantReceiptCategoryFilter">
+            <option value="">All categories</option>
+          </select>
+        </label>
+        <label class="select-field select-field--view">
+          <span>Status</span>
+          <select id="tenantReceiptStatusFilter">
+            <option value="">All statuses</option>
+            <option value="Unpaid">Unpaid</option>
+            <option value="Partially Paid">Partially Paid</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+          </select>
+        </label>
       </div>
     </div>
     <div id="tenantReceiptsTable"></div>
@@ -62,6 +160,7 @@
       {% endif %}
       <form method="post" class="tenant-form">
         {% csrf_token %}
+        <input type="hidden" name="form_action" value="extension">
         <div class="tenant-form__grid">
           <div class="tenant-form__field">
             <label for="{{ lease_extension_form.requested_end_date.id_for_label }}">Requested new end date</label>
@@ -92,7 +191,10 @@
           <article class="resource-card">
             <h4>{{ request_item.requested_end_date }}</h4>
             <p>{{ request_item.reason }}</p>
-            <span class="status-badge status-badge--stable">{{ request_item.status }}</span>
+            <span class="status-badge status-badge--{% if request_item.status == 'Approved' %}high-performing{% elif request_item.status == 'Declined' %}vacancy-risk{% elif request_item.status == 'Under Review' %}stable{% else %}needs-attention{% endif %}">{{ request_item.status }}</span>
+            {% if request_item.landlord_notes %}
+              <p class="field-help">Landlord note: {{ request_item.landlord_notes }}</p>
+            {% endif %}
           </article>
         {% empty %}
           <article class="resource-card">
@@ -107,4 +209,5 @@
 
 {% block json_data %}
   {{ tenant_receipts_data|json_script:"tenant-receipts-data" }}
+  {{ open_bill_choices|json_script:"tenant-open-bills-data" }}
 {% endblock %}

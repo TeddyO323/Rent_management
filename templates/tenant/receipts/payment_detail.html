@@ -24,6 +24,8 @@
       <div class="detail-list__row"><span>Amount</span><strong>KSh {{ payment.amount }}</strong></div>
       <div class="detail-list__row"><span>Payment date</span><strong>{{ payment.paid_on }}</strong></div>
       <div class="detail-list__row"><span>Method</span><strong>{{ payment.method }}</strong></div>
+      <div class="detail-list__row"><span>Status</span><strong>{{ payment.status }}</strong></div>
+      <div class="detail-list__row"><span>Payment scope</span><strong>{{ payment.scope }}</strong></div>
       <div class="detail-list__row"><span>Property</span><strong>{{ payment.property.name }}</strong></div>
       <div class="detail-list__row"><span>Notes</span><strong>{{ payment.notes|default:"No notes" }}</strong></div>
     </div>

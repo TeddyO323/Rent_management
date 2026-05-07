@@ -1,0 +1,75 @@
+{% extends "landlord/base.html" %}
+
+{% block page_title %}Lease Extension Request{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Lease Extension Request</span>
+          <h2>{{ extension_request.tenant.full_name }}</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Review the tenant’s request, decide the next lease posture, and leave a visible note.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="content-grid reveal">
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Request Context</span>
+          <h3>Current lease details</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Tenant</span><strong>{{ extension_request.tenant.full_name }}</strong></div>
+        <div class="detail-list__row"><span>Property</span><strong>{{ extension_request.tenant.property.name }}</strong></div>
+        <div class="detail-list__row"><span>House</span><strong>{{ extension_request.tenant.unit_number }}</strong></div>
+        <div class="detail-list__row"><span>Current lease end</span><strong>{{ extension_request.tenant.lease_end|default:"Not set" }}</strong></div>
+        <div class="detail-list__row"><span>Requested end date</span><strong>{{ extension_request.requested_end_date }}</strong></div>
+        <div class="detail-list__row"><span>Status</span><strong>{{ extension_request.status }}</strong></div>
+        <div class="detail-list__row"><span>Submitted on</span><strong>{{ extension_request.created_at }}</strong></div>
+      </div>
+      <div class="tenant-form__field tenant-form__field--full" style="margin-top: 1rem;">
+        <label>Tenant reason</label>
+        <div class="derived-pricing-card">
+          <span class="field-help">{{ extension_request.reason }}</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel tenant-form-panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Decision</span>
+          <h3>Update the request outcome</h3>
+        </div>
+      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ form.status.id_for_label }}">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}<div class="field-error">{{ form.status.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ form.landlord_notes.id_for_label }}">Landlord note</label>
+            {{ form.landlord_notes }}
+            {% if form.landlord_notes.errors %}<div class="field-error">{{ form.landlord_notes.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Save Extension Decision</button>
+        </div>
+      </form>
+    </article>
+  </section>
+{% endblock %}

@@ -1,5 +1,4 @@
 {% extends "landlord/base.html" %}
-{% load static %}
 
 {% block page_title %}Notifications{% endblock %}
 {% block page_description %}SmartRent notifications and reminders dashboard.{% endblock %}
@@ -9,25 +8,150 @@
     <div class="topbar__intro">
       <div class="topbar__heading">
         <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation"><i class="fa-solid fa-bars-staggered"></i></button>
-        <div><span class="eyebrow">Alerts And Reminders</span><h2>Centralize every alert, reminder, and automated follow-up in one operational inbox.</h2></div>
+        <div>
+          <span class="eyebrow">Alerts And Reminders</span>
+          <h2>Keep payments, leases, and maintenance events in one operational inbox.</h2>
+        </div>
       </div>
-      <p class="topbar__tagline">Stay ahead of overdue rent, vacancy signals, successful payments, and maintenance escalations with smarter notifications.</p>
+      <p class="topbar__tagline">Notifications are now event-based, role-aware, and tied to the actual work happening in the portfolio.</p>
     </div>
   </header>
 {% endblock %}
 
 {% block content %}
   <section class="stats-grid reveal">
-    <article class="metric-card metric-card--accent"><div class="metric-card__icon"><i class="fa-solid fa-bell"></i></div><div class="metric-card__content"><span class="metric-card__label">Active Alerts</span><strong class="metric-value" data-value="12" data-format="number">0</strong><p>Prioritized operational alerts requiring attention or active monitoring.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-2</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--mint"><i class="fa-solid fa-robot"></i></div><div class="metric-card__content"><span class="metric-card__label">Reminder Rules</span><strong class="metric-value" data-value="6" data-format="number">0</strong><p>Automation rules keep rent reminders and operational follow-ups moving.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+1</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--gold"><i class="fa-solid fa-circle-check"></i></div><div class="metric-card__content"><span class="metric-card__label">Positive Updates</span><strong class="metric-value" data-value="14" data-format="number">0</strong><p>Payments received, tickets resolved, and occupancy wins feeding the activity stream.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-up"></i>+6</span></article>
-    <article class="metric-card"><div class="metric-card__icon metric-card__icon--rose"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="metric-card__content"><span class="metric-card__label">Escalations</span><strong class="metric-value" data-value="3" data-format="number">0</strong><p>Only a small portion of alerts require direct intervention from management.</p></div><span class="trend trend--positive"><i class="fa-solid fa-arrow-trend-down"></i>-1</span></article>
+    <article class="metric-card metric-card--accent">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Total notifications</span>
+        <div class="metric-value">{{ notifications_dashboard_data.summary.total }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Unread</span>
+        <div class="metric-value">{{ notifications_dashboard_data.summary.unread }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">High priority</span>
+        <div class="metric-value">{{ notifications_dashboard_data.summary.highPriority }}</div>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-card__content">
+        <span class="metric-card__label">Read</span>
+        <div class="metric-value">{{ notifications_dashboard_data.summary.resolved }}</div>
+      </div>
+    </article>
   </section>
 
   <section class="content-grid">
-    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Alert inbox</span><h3>Prioritized portfolio alerts</h3></div><span class="panel-pill">Live feed</span></div><div class="alerts-list" id="alertsList"></div></article>
-    <article class="panel reveal"><div class="panel__header"><div><span class="section-label">Automation rules</span><h3>Reminder and escalation workflows</h3></div><span class="panel-pill panel-pill--success">6 rules active</span></div><div class="automation-list" id="automationList"></div></article>
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Alert Inbox</span>
+          <h3>Landlord-facing notifications</h3>
+        </div>
+        <form method="post" action="{% url 'landlord-mark-all-notifications-read' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button type="submit" class="btn btn--secondary">Mark all as read</button>
+        </form>
+      </div>
+      <div class="stack-list">
+        {% for item in notifications_dashboard_data.items %}
+          <article class="alert-item{% if item.isRead %} alert-item--muted{% endif %}">
+            <div class="alert-item__icon alert-item__icon--{% if item.priority == 'High' %}warning{% elif item.priority == 'Medium' %}info{% else %}success{% endif %}">
+              <i class="fa-solid {% if item.category == 'Payments & Bills' %}fa-wallet{% elif item.category == 'Lease & Occupancy' %}fa-file-signature{% elif item.category == 'Maintenance & Account' %}fa-screwdriver-wrench{% else %}fa-bell{% endif %}"></i>
+            </div>
+            <div class="alert-item__body">
+              <div class="resource-card__header">
+                <div>
+                  <h4>{{ item.title }}</h4>
+                  <p>{{ item.message }}</p>
+                </div>
+                <span class="status-badge status-badge--{{ item.tone }}">{{ item.priority }}</span>
+              </div>
+              <div class="notification-meta">
+                <span>{{ item.category }}</span>
+                {% if item.tenantName %}<span>{{ item.tenantName }}</span>{% endif %}
+                {% if item.propertyName %}<span>{{ item.propertyName }}</span>{% endif %}
+                <span>{{ item.createdAt }}</span>
+              </div>
+              <div class="property-actions">
+                {% if item.linkUrl %}<a href="{{ item.linkUrl }}" class="btn btn--ghost btn--sm">Open</a>{% endif %}
+                {% if not item.isRead %}
+                  <form method="post" action="{% url 'landlord-mark-notification-read' item.id %}" class="property-actions__form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn btn--secondary btn--sm">Mark as read</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <article class="resource-card">
+            <h4>No notifications yet</h4>
+            <p>New payment, lease, and maintenance events will start appearing here automatically.</p>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header">
+        <div>
+          <span class="section-label">Automation Rules</span>
+          <h3>Reminder and escalation workflows</h3>
+        </div>
+      </div>
+      <div class="automation-list">
+        {% for rule in notifications_dashboard_data.rules %}
+          <article class="resource-card">
+            <div class="resource-card__header">
+              <div>
+                <h4>{{ rule.title }}</h4>
+                <p>{{ rule.detail }}</p>
+              </div>
+              <span class="status-badge status-badge--{% if rule.status == 'Active' %}stable{% else %}needs-attention{% endif %}">{{ rule.status }}</span>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
   </section>
 
-  <section class="panel reveal"><div class="panel__header"><div><span class="section-label">Communication feed</span><h3>Recent reminders and outbound updates</h3></div></div><div class="communication-list" id="communicationList"></div></section>
+  <section class="panel reveal">
+    <div class="panel__header">
+      <div>
+        <span class="section-label">Communication Feed</span>
+        <h3>Recent tenant-facing updates</h3>
+      </div>
+    </div>
+    <div class="communication-list">
+      {% for item in notifications_dashboard_data.communicationFeed %}
+        <article class="resource-card">
+          <div class="resource-card__header">
+            <div>
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.message }}</p>
+            </div>
+            <span class="status-badge status-badge--{{ item.tone }}">{{ item.audience }}</span>
+          </div>
+          <div class="notification-meta">
+            <span>{{ item.category }}</span>
+            {% if item.propertyName %}<span>{{ item.propertyName }}</span>{% endif %}
+            <span>{{ item.createdAt }}</span>
+          </div>
+        </article>
+      {% empty %}
+        <article class="resource-card">
+          <h4>No outbound updates yet</h4>
+          <p>As tenants receive billing, lease, and maintenance updates, they will also appear here.</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
 {% endblock %}

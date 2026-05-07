@@ -1,0 +1,75 @@
+{% extends "landlord/base.html" %}
+
+{% block page_title %}Bill Detail{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Bill Detail</span>
+          <h2>{{ bill.title }}</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Review the live balance, payment applications, and billing context for this charge.</p>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="content-grid reveal">
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Bill Snapshot</span>
+          <h3>Core billing details</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Property</span><strong>{{ bill.property.name }}</strong></div>
+        <div class="detail-list__row"><span>Tenant</span><strong>{{ bill.tenant.full_name|default:"Property-wide" }}</strong></div>
+        <div class="detail-list__row"><span>Category</span><strong>{{ bill.category }}</strong></div>
+        <div class="detail-list__row"><span>Status</span><strong>{{ bill.status }}</strong></div>
+        <div class="detail-list__row"><span>Original amount</span><strong>KSh {{ bill_detail_data.original_amount|floatformat:0 }}</strong></div>
+        <div class="detail-list__row"><span>Paid so far</span><strong>KSh {{ bill_detail_data.amount_paid|floatformat:0 }}</strong></div>
+        <div class="detail-list__row"><span>Remaining balance</span><strong>KSh {{ bill_detail_data.remaining_amount|floatformat:0 }}</strong></div>
+        <div class="detail-list__row"><span>Due date</span><strong>{{ bill.due_date }}</strong></div>
+        <div class="detail-list__row"><span>Created</span><strong>{{ bill.created_at }}</strong></div>
+        <div class="detail-list__row"><span>Notes</span><strong>{{ bill.notes|default:"No notes" }}</strong></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Payment Applications</span>
+          <h3>How this bill has been cleared</h3>
+        </div>
+      </div>
+      <div class="property-table-wrap">
+        <table class="property-table property-table--compact">
+          <thead>
+            <tr><th>Date</th><th>Tenant</th><th>Method</th><th>Payment Status</th><th>Applied Amount</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            {% for allocation in bill_detail_data.allocations %}
+              <tr>
+                <td>{{ allocation.payment.paid_on }}</td>
+                <td>{{ allocation.payment.tenant.full_name }}</td>
+                <td>{{ allocation.payment.method }}</td>
+                <td><span class="status-badge status-badge--{% if allocation.payment.status == 'Confirmed' %}high-performing{% elif allocation.payment.status == 'Pending' %}needs-attention{% else %}vacancy-risk{% endif %}">{{ allocation.payment.status }}</span></td>
+                <td>KSh {{ allocation.amount|floatformat:0 }}</td>
+                <td><a class="table-action-link" href="{% url 'landlord-payment-detail' allocation.payment.id %}">View payment</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6">No recorded payment allocations yet for this bill.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+{% endblock %}

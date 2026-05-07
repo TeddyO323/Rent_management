@@ -1,0 +1,161 @@
+{% extends "landlord/base.html" %}
+
+{% block page_title %}Complaint Detail{% endblock %}
+
+{% block topbar %}
+  <header class="topbar reveal">
+    <div class="topbar__intro">
+      <div class="topbar__heading">
+        <button class="icon-button menu-toggle mobile-only" id="openSidebar" aria-label="Open navigation">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div>
+          <span class="eyebrow">Complaint Detail</span>
+          <h2>{{ complaint.title }}</h2>
+        </div>
+      </div>
+      <p class="topbar__tagline">Review the reported issue, decide the next status, and leave a note the tenant can see.</p>
+    </div>
+    <div class="topbar__actions">
+      <a href="{% url 'landlord-maintenance' %}" class="btn btn--ghost">Back to Maintenance</a>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+  <section class="content-grid">
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Issue context</span>
+          <h3>Reported details</h3>
+        </div>
+      </div>
+      <div class="detail-list">
+        <div class="detail-list__row"><span>Tenant</span><strong>{{ complaint.tenant.full_name }}</strong></div>
+        <div class="detail-list__row"><span>Property</span><strong>{{ complaint.tenant.property.name }}</strong></div>
+        <div class="detail-list__row"><span>House</span><strong>{{ complaint.tenant.unit_number }}</strong></div>
+        <div class="detail-list__row"><span>Category</span><strong>{{ complaint.category }}</strong></div>
+        <div class="detail-list__row"><span>Status</span><strong>{{ complaint.status }}</strong></div>
+        <div class="detail-list__row"><span>Reported on</span><strong>{{ complaint.created_at }}</strong></div>
+      </div>
+      <div class="tenant-form__field tenant-form__field--full" style="margin-top: 1rem;">
+        <label>Description</label>
+        <div class="derived-pricing-card">
+          <span class="field-help">{{ complaint.description }}</span>
+        </div>
+      </div>
+      {% if complaint.landlord_notes %}
+        <div class="tenant-form__field tenant-form__field--full" style="margin-top: 1rem;">
+          <label>Current landlord note</label>
+          <div class="derived-pricing-card">
+            <span class="field-help">{{ complaint.landlord_notes }}</span>
+          </div>
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="panel reveal tenant-form-panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Resolution</span>
+          <h3>Update complaint status</h3>
+          <p class="section-copy">Choose whether the issue is still being worked on, fully resolved, or rejected, then explain the decision for the tenant.</p>
+        </div>
+      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="status">
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ status_form.status.id_for_label }}">Status</label>
+            {{ status_form.status }}
+            {% if status_form.status.errors %}<div class="field-error">{{ status_form.status.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ status_form.landlord_notes.id_for_label }}">Landlord note</label>
+            {{ status_form.landlord_notes }}
+            {% if status_form.landlord_notes.errors %}<div class="field-error">{{ status_form.landlord_notes.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Save Complaint Update</button>
+        </div>
+      </form>
+    </article>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel reveal tenant-form-panel">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Expense record</span>
+          <h3>Log a maintenance cost for this issue</h3>
+          <p class="section-copy">Record the cost here and choose who should carry it. A tenant bill is only created when the cost bearer is set to tenant.</p>
+        </div>
+      </div>
+      <form method="post" class="tenant-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="expense">
+        <div class="tenant-form__grid">
+          <div class="tenant-form__field">
+            <label for="{{ expense_form.title.id_for_label }}">Expense title</label>
+            {{ expense_form.title }}
+            {% if expense_form.title.errors %}<div class="field-error">{{ expense_form.title.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ expense_form.amount.id_for_label }}">Amount</label>
+            {{ expense_form.amount }}
+            {% if expense_form.amount.errors %}<div class="field-error">{{ expense_form.amount.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field">
+            <label for="{{ expense_form.cost_bearer.id_for_label }}">Cost bearer</label>
+            {{ expense_form.cost_bearer }}
+            {% if expense_form.cost_bearer.errors %}<div class="field-error">{{ expense_form.cost_bearer.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="tenant-form__field tenant-form__field--full">
+            <label for="{{ expense_form.notes.id_for_label }}">Note</label>
+            {{ expense_form.notes }}
+            {% if expense_form.notes.errors %}<div class="field-error">{{ expense_form.notes.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="tenant-form__actions">
+          <button type="submit" class="btn btn--primary">Save Expense</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel reveal">
+      <div class="panel__header panel__header--stack">
+        <div>
+          <span class="section-label">Expense history</span>
+          <h3>Recorded costs for this complaint</h3>
+        </div>
+      </div>
+      <div class="stack-list">
+        {% for expense in expense_records %}
+          <article class="resource-card">
+            <div class="resource-card__header">
+              <div>
+                <h4>{{ expense.title }}</h4>
+                <p>{{ expense.cost_bearer }} • {{ expense.created_at }}</p>
+              </div>
+              <div class="resource-card__value">KSh {{ expense.amount }}</div>
+            </div>
+            <p>{{ expense.notes|default:"No note provided." }}</p>
+            {% if expense.bill %}
+              <span class="status-badge status-badge--stable">Tenant bill created</span>
+            {% else %}
+              <span class="status-badge status-badge--high-performing">Internal cost only</span>
+            {% endif %}
+          </article>
+        {% empty %}
+          <article class="resource-card">
+            <h4>No expenses yet</h4>
+            <p>Expense records linked to this complaint will appear here once they are added.</p>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+{% endblock %}
